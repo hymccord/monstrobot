@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "MonstroBot.API": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7220"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "DockerfileRunArguments": "--init",
+      "httpPort": 31410,
+      "useSSL": false
+    }
+  }
+}
