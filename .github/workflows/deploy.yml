@@ -89,7 +89,7 @@ jobs:
 
       - name: Swap slots
         run: >
-          az webapp deployment slot swap
+          az functionapp deployment slot swap
           -s ${{ env.SLOT_NAME }}
           -n ${{ env.AZURE_FUNCTIONAPP_NAME }}
           -g ${{ env.AZURE_FUNCTIONAPP_RESOURCE_GROUP }}
