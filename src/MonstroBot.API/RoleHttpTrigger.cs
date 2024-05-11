@@ -75,13 +75,13 @@ public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings op
             snuid = await _apiClient.GetUserSnuid(account, id).ConfigureAwait(false);
         }
         // bad creds
-        catch (InvalidOperationException ex)
+        catch (ArgumentException ex)
         {
             _logger.LogWarning(ex, "Error occurred converting MHID {Id} into SNUID", id);
             return new UnauthorizedObjectResult("Supplied credentials are invalid or expired");
         }
         // bad snuid
-        catch (ArgumentException ex)
+        catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Error occurred converting MHID {Id} into SNUID", id);
             return new BadRequestObjectResult($"Error converting MHID {id} into SNUID.");
