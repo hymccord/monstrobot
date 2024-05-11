@@ -54,7 +54,7 @@ public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings op
     [OpenApiParameter(name: nameof(role), In = ParameterLocation.Path, Required = true, Type = typeof(Role), Summary = "Achievement role to check", Description = "Achievement role to check", Visibility = OpenApiVisibilityType.Important)]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(RoleCheckResponse), Summary = "successful operation", Description = "successful operation")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.BadRequest, Summary = "Invalid ID supplied")]
-    [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Summary = "Supplied credentials were invalid or expired")]
+    [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Summary = "Supplied credentials are invalid or expired")]
     public async Task<IActionResult> CheckRole([HttpTrigger(AuthorizationLevel.Anonymous, "GET", "POST", Route = "role/{role}/{id}")] HttpRequest req,
         [FromBody] MouseHuntAuth account,
         string role,
@@ -74,6 +74,13 @@ public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings op
         {
             snuid = await _apiClient.GetUserSnuid(account, id).ConfigureAwait(false);
         }
+        // bad creds
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Error occurred converting MHID {Id} into SNUID", id);
+            return new UnauthorizedObjectResult("Supplied credentials are invalid or expired");
+        }
+        // bad snuid
         catch (ArgumentException ex)
         {
             _logger.LogWarning(ex, "Error occurred converting MHID {Id} into SNUID", id);
