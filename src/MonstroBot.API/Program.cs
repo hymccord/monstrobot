@@ -2,13 +2,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Extensions.OpenApi.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using MonstroBot.API;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWebApplication()
+    .ConfigureFunctionsWebApplication(worker => worker.UseNewtonsoftJson())
     .ConfigureServices(services =>
     {
         services.AddApplicationInsightsTelemetryWorkerService();
