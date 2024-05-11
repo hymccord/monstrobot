@@ -55,7 +55,7 @@ public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings op
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(RoleCheckResponse), Summary = "successful operation", Description = "successful operation")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.BadRequest, Summary = "Invalid ID supplied")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Summary = "Supplied credentials were invalid or expired")]
-    public async Task<IActionResult> CheckRole([HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "role/{role}/{id}")] HttpRequest req,
+    public async Task<IActionResult> CheckRole([HttpTrigger(AuthorizationLevel.Anonymous, "GET", "POST", Route = "role/{role}/{id}")] HttpRequest req,
         [FromBody] MouseHuntAuth account,
         string role,
         ulong id)
