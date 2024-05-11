@@ -175,6 +175,11 @@ public class MouseHuntApiClient
         HttpResponseMessage response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
+        if (response.Content.Headers.ContentType?.MediaType == "text/html")
+        {
+            throw new ArgumentException("Supplied credentials didn't work", nameof(credentials));
+        }
+
         return await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
     }
 

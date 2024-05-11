@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C60FB3DE-32C3-48CF-8A2D-4057C099E1BF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonstroBot.API", "src\MonstroBot.API\MonstroBot.API.csproj", "{93C32E32-C6E8-4013-8B80-AF4401B36852}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonstroBot.Models", "src\MonstroBot.Models\MonstroBot.Models.csproj", "{62D519D4-EB97-4E13-8E14-02F535F41455}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{93C32E32-C6E8-4013-8B80-AF4401B36852}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93C32E32-C6E8-4013-8B80-AF4401B36852}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93C32E32-C6E8-4013-8B80-AF4401B36852}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93C32E32-C6E8-4013-8B80-AF4401B36852}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62D519D4-EB97-4E13-8E14-02F535F41455}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62D519D4-EB97-4E13-8E14-02F535F41455}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62D519D4-EB97-4E13-8E14-02F535F41455}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62D519D4-EB97-4E13-8E14-02F535F41455}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{93C32E32-C6E8-4013-8B80-AF4401B36852} = {C60FB3DE-32C3-48CF-8A2D-4057C099E1BF}
+		{62D519D4-EB97-4E13-8E14-02F535F41455} = {C60FB3DE-32C3-48CF-8A2D-4057C099E1BF}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {04FDFF13-1A6B-42B1-999D-3485DA886AC1}
+	EndGlobalSection
+EndGlobal

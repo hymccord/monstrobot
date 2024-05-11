@@ -74,7 +74,7 @@ public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings op
         {
             snuid = await _apiClient.GetUserSnuid(account, id).ConfigureAwait(false);
         }
-        catch (InvalidOperationException ex)
+        catch (ArgumentException ex)
         {
             _logger.LogWarning(ex, "Error occurred converting MHID {Id} into SNUID", id);
             return new BadRequestObjectResult($"Error converting MHID {id} into SNUID.");
