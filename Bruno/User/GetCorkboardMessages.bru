@@ -1,0 +1,18 @@
+meta {
+  name: GetCorkboardMessages
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/user/1/corkboard
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "hgToken": "{{hgToken}}",
+    "uniqueHash": "{{uniqueHash}}"
+  }
+}
