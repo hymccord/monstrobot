@@ -143,7 +143,17 @@ public class MouseHuntApiClient
     private async Task<T?> GetPageAsync<T>(MouseHuntAuth credentials, IEnumerable<KeyValuePair<string, string>> parameters, JsonSerializerOptions? jsonSerializerOptions = null)
     {
         var response = await SendRequestAsync(credentials, "/managers/ajax/pages/page.php", parameters);
-        return response.RootElement.GetProperty("page").Deserialize<T>(jsonSerializerOptions);
+        return response.RootElement.GetProperty("page").Deserialize<T>(jsonSerializerOptions ?? JsonSerializerOptionsProvider.Default);
+    }
+
+    private async Task<T?> GetPageAsync<T>(MouseHuntAuth credentials,IEnumerable<KeyValuePair<string, string>> parameters,
+        Func<JsonElement, JsonElement> elementSelector,
+        JsonSerializerOptions? jsonSerializerOptions = null)
+    {
+        var response = await SendRequestAsync(credentials, "/managers/ajax/pages/page.php", parameters);
+        var page = response.RootElement.GetProperty("page");
+
+        return elementSelector(page).Deserialize<T>(jsonSerializerOptions ?? JsonSerializerOptionsProvider.Default);
     }
 
     private async Task<JsonDocument> SendRequestAsync(MouseHuntAuth credentials, string relativeUri, IEnumerable<KeyValuePair<string, string>> parameters)
