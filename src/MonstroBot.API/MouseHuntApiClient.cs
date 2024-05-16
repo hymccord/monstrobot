@@ -9,10 +9,6 @@ namespace MonstroBot.API;
 public class MouseHuntApiClient
 {
     private static readonly Uri s_mouseHuntBaseAddress = new("https://www.mousehuntgame.com");
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-    };
     private readonly IList<KeyValuePair<string, string>> _defaultFormData = [
         new ("sn", "Hitgrab"),
         new ("hg_is_ajax", "1")
@@ -80,7 +76,7 @@ public class MouseHuntApiClient
             .GetProperty("subtabs")[0]
             .GetProperty("items")
             .GetProperty("categories")
-            .Deserialize<ItemCategoryCompletion[]>(s_jsonSerializerOptions);
+            .Deserialize<ItemCategoryCompletion[]>(JsonSerializerOptionsProvider.Default);
 
         if (items is null)
         {
@@ -107,7 +103,7 @@ public class MouseHuntApiClient
             .GetProperty("subtabs")[0]
             .GetProperty("mouse_crowns")
             .GetProperty("badge_groups")
-            .Deserialize<MouseCrownBadgeGroup[]>(s_jsonSerializerOptions);
+            .Deserialize<MouseCrownBadgeGroup[]>(JsonSerializerOptionsProvider.Default);
 
         if (items is null)
         {
@@ -134,7 +130,7 @@ public class MouseHuntApiClient
             .GetProperty("subtabs")[1]
             .GetProperty("mouse_list")
             .GetProperty("categories")
-            .Deserialize<ItemCategoryCompletion[]>(s_jsonSerializerOptions);
+            .Deserialize<ItemCategoryCompletion[]>(JsonSerializerOptionsProvider.Default);
 
         if (items is null)
         {
