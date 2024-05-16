@@ -21,6 +21,7 @@ var host = new HostBuilder()
         });
 
         services.AddSingleton<MouseHuntApiClient>();
+        services.AddSingleton<MouseHuntHtmlClient>();
     })
     .Build();
 
