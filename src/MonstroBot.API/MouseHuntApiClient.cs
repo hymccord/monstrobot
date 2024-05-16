@@ -140,6 +140,27 @@ public class MouseHuntApiClient
         return items.All(i => i.IsComplete ?? false);
     }
 
+    public async Task<IReadOnlyList<CorkboardMessage>> GetCorkboardMessages(MouseHuntAuth credentials, string snuid, int limit = 1)
+    {
+        var doc = await GetPageAsync<MessageBoardView>(credentials, [
+            new ("page_class", "HunterProfile"),
+            new ("page_arguments[snuid]", snuid),
+        ],
+        (element) => element
+            .GetProperty("tabs")
+            .GetProperty("profile")
+            .GetProperty("subtabs")[0]
+            .GetProperty("message_board_view"),
+        JsonSerializerOptionsProvider.RelaxedDateTime);
+
+        if (doc is null)
+        {
+            throw new InvalidOperationException("Couldn't retrieve message_board_view");
+        }
+
+        return [..doc.Messages.Take(limit)];
+    }
+
     private async Task<T?> GetPageAsync<T>(MouseHuntAuth credentials, IEnumerable<KeyValuePair<string, string>> parameters, JsonSerializerOptions? jsonSerializerOptions = null)
     {
         var response = await SendRequestAsync(credentials, "/managers/ajax/pages/page.php", parameters);
