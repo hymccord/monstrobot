@@ -1,6 +1,0 @@
-<Solution>
-  <Folder Name="/src/">
-    <Project Path="src\MonstroBot.API\MonstroBot.API.csproj" />
-    <Project Path="src\MonstroBot.Models\MonstroBot.Models.csproj" Type="Classic C#" />
-  </Folder>
-</Solution>
