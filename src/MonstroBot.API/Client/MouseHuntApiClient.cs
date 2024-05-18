@@ -1,11 +1,13 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
 using Json.Path;
 
 using Microsoft.Extensions.Logging;
+
 using MonstroBot.Models;
 
 namespace MonstroBot.API.Client;
@@ -51,7 +53,7 @@ public class MouseHuntApiClient
     /// <returns>MouseHunt snuid</returns>
     public async Task<string> GetUserSnuid(MouseHuntAuth credentials, ulong userId)
     {
-        var doc = await SendRequestAsync(credentials, "/managers/ajax/pages/friends.php", [
+        JsonNode doc = await SendRequestAsync(credentials, "/managers/ajax/pages/friends.php", [
             ("action", "community_search_by_id"),
             ("user_id", $"{userId}"),
         ]);
@@ -61,7 +63,7 @@ public class MouseHuntApiClient
 
     public async Task<bool> IsEggMaster(MouseHuntAuth credentials, string snUserId)
     {
-        var doc = await SendRequestAsync(credentials, "/managers/ajax/users/userData.php", [
+        JsonNode doc = await SendRequestAsync(credentials, "/managers/ajax/users/userData.php", [
             ("sn_user_ids[]", snUserId),
             ("fields[]", "is_egg_master")
             ]);
@@ -71,7 +73,7 @@ public class MouseHuntApiClient
 
     public async Task<bool> IsCheckmarked(MouseHuntAuth credentials, string snUserId)
     {
-        var doc = await SendRequestAsync(credentials, "/managers/ajax/pages/page.php", [
+        JsonNode doc = await SendRequestAsync(credentials, "/managers/ajax/pages/page.php", [
             ("page_class", "HunterProfile"),
             ("page_arguments[legacyMode]", ""),
             ("page_arguments[tab]", "items"),
@@ -79,20 +81,18 @@ public class MouseHuntApiClient
             ("page_arguments[snuid]", snUserId),
         ]);
 
-        var items = doc.Query("$.page.tabs.items.subtabs[0].items.categories")
+        ItemCategoryCompletion[]? items = doc.Query("$.page.tabs.items.subtabs[0].items.categories")
             .Deserialize<ItemCategoryCompletion[]>(JsonSerializerOptionsProvider.Default);
 
-        if (items is null)
-        {
-            throw new InvalidOperationException("Item categories are null");
-        }
-
-        return items.All(i => i.IsComplete ?? false);
+        return items is null
+            ? throw new InvalidOperationException("Item categories are null")
+            : items.All(i => i.IsComplete ?? false);
     }
 
     public async Task<bool> IsCrowned(MouseHuntAuth credentials, string snUserId)
     {
-        var doc = await SendRequestAsync(credentials, "/managers/ajax/pages/page.php", [
+        Task<int> totalMice = GetTotalMouseCount();
+        JsonNode doc = await SendRequestAsync(credentials, "/managers/ajax/pages/page.php", [
             ("page_class", "HunterProfile"),
             ("page_arguments[legacyMode]", ""),
             ("page_arguments[tab]", "kings_crowns"),
@@ -100,20 +100,23 @@ public class MouseHuntApiClient
             ("page_arguments[snuid]", snUserId),
         ]);
 
-        var items = doc.Query("$.page.tabs.kings_crowns.subtabs[0].mouse_crowns.badge_groups")
+        MouseCrownBadgeGroup[]? items = doc.Query("$.page.tabs.kings_crowns.subtabs[0].mouse_crowns.badge_groups")
             .Deserialize<MouseCrownBadgeGroup[]>(JsonSerializerOptionsProvider.Default);
 
-        if (items is null)
-        {
-            throw new InvalidOperationException("Badge groups are null");
-        }
+        return items is null
+            ? throw new InvalidOperationException("Badge groups are null")
+            : items.Sum(badgeGroup => badgeGroup.Count) == await totalMice;
 
-        return (items.FirstOrDefault(bg => bg.Type == "none")?.Count ?? 0) == 0;
+        async Task<int> GetTotalMouseCount()
+        {
+            JsonNode[]? mice = await _httpClient.GetFromJsonAsync<JsonNode[]>("/api/get/mouse/all");
+            return mice.Length - 2; // 2: Not Lep or Mobster
+        }
     }
 
     public async Task<bool> IsStarred(MouseHuntAuth credentials, string snUserId)
     {
-        var doc = await SendRequestAsync(credentials, "/managers/ajax/pages/page.php", [
+        JsonNode doc = await SendRequestAsync(credentials, "/managers/ajax/pages/page.php", [
             ("page_class", "HunterProfile"),
             ("page_arguments[legacyMode]", ""),
             ("page_arguments[tab]", "mice"),
@@ -121,20 +124,17 @@ public class MouseHuntApiClient
             ("page_arguments[snuid]", snUserId),
         ]);
 
-        var items = doc.Query("$.page.tabs.mice.subtabs[1].mouse_list.categories")
+        ItemCategoryCompletion[]? items = doc.Query("$.page.tabs.mice.subtabs[1].mouse_list.categories")
             .Deserialize<ItemCategoryCompletion[]>(JsonSerializerOptionsProvider.Default);
 
-        if (items is null)
-        {
-            throw new InvalidOperationException("Item categories are null");
-        }
-
-        return items.All(i => i.IsComplete ?? false);
+        return items is null
+            ? throw new InvalidOperationException("Item categories are null")
+            : items.All(i => i.IsComplete ?? false);
     }
 
     public async Task<IReadOnlyList<CorkboardMessage>> GetCorkboardMessages(MouseHuntAuth credentials, string snuid, int limit = 1)
     {
-        var doc = await GetPageAsync<MessageBoardView>(credentials, [
+        MessageBoardView? doc = await GetPageAsync<MessageBoardView>(credentials, [
             ("page_class", "HunterProfile"),
             ("page_arguments[snuid]", snuid),
         ],
@@ -144,25 +144,19 @@ public class MouseHuntApiClient
         return [.. doc.Messages.Take(limit)];
     }
 
-    private async Task<T?> GetPageAsync<T>(MouseHuntAuth credentials, IEnumerable<(string key, string value)> parameters, JsonSerializerOptions? jsonSerializerOptions = null)
-    {
-        var response = await SendRequestAsync(credentials, "/managers/ajax/pages/page.php", parameters);
-        return response["page"].Deserialize<T>(jsonSerializerOptions ?? JsonSerializerOptionsProvider.Default);
-    }
-
     private async Task<T?> GetPageAsync<T>(MouseHuntAuth credentials, IEnumerable<(string key, string value)> parameters,
         string jsonPath,
         JsonSerializerOptions? jsonSerializerOptions = null) where T : class
     {
-        var response = await SendRequestAsync(credentials, "/managers/ajax/pages/page.php", parameters);
-        var page = response["page"]!;
+        JsonNode response = await SendRequestAsync(credentials, "/managers/ajax/pages/page.php", parameters);
+        JsonNode page = response["page"]!;
 
         return page.Query(jsonPath).Deserialize<T>(jsonSerializerOptions ?? JsonSerializerOptionsProvider.Default);
     }
 
     private async Task<JsonNode> SendRequestAsync(MouseHuntAuth credentials, string relativeUri, IEnumerable<(string key, string value)> parameters)
     {
-        var returnResponse = await RequestAsync();
+        JsonNode returnResponse = await RequestAsync();
 
         // Session sometimes expires when HG_TOKEN isn't used (seems to be > 1hr)
         if (IsSessionExpired(returnResponse))
@@ -204,13 +198,9 @@ public class MouseHuntApiClient
                 throw new ArgumentException("Supplied credentials didn't work", nameof(credentials));
             }
 
-            var node = await JsonNode.ParseAsync(await response.Content.ReadAsStreamAsync().ConfigureAwait(false)).ConfigureAwait(false);
-            if (node is null)
-            {
-                throw new InvalidDataException("Deserialized JSON is null");
-            }
+            JsonNode? node = await JsonNode.ParseAsync(await response.Content.ReadAsStreamAsync().ConfigureAwait(false)).ConfigureAwait(false);
 
-            return node;
+            return node ?? throw new InvalidDataException("Deserialized JSON is null");
         }
 
         async Task RefreshSession()
@@ -227,7 +217,7 @@ public class MouseHuntApiClient
         bool IsSessionExpired(JsonNode node)
         {
             var path = JsonPath.Parse("$.messageData.popup.messages[0].messageData.body");
-            var matches = path.Evaluate(node).Matches;
+            NodeList? matches = path.Evaluate(node).Matches;
 
             return matches?.Count > 0 && (string?)matches[0].Value == "Your session has expired.";
         }
