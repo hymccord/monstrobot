@@ -6,11 +6,13 @@ using System.Text.Json.Nodes;
 using Json.Path;
 
 using Microsoft.Extensions.Logging;
-
 using MonstroBot.Models;
 
-namespace MonstroBot.API;
+namespace MonstroBot.API.Client;
 
+/// <summary>
+/// Main http client for abstracting over the MouseHunt ajax API
+/// </summary>
 public class MouseHuntApiClient
 {
     private static readonly Uri s_mouseHuntBaseAddress = new("https://www.mousehuntgame.com");
@@ -23,6 +25,8 @@ public class MouseHuntApiClient
 
     public MouseHuntApiClient(ILogger<MouseHuntApiClient> logger)
     {
+        _logger = logger;
+
         var handler = new SocketsHttpHandler()
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
@@ -37,9 +41,14 @@ public class MouseHuntApiClient
         _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("monstro-bot", "1.0"));
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/json, text/javascript, */*; q=0.01");
         _httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
-        _logger = logger;
     }
 
+    /// <summary>
+    /// Convert a MouseHunt profile ID into Social Network Unique ID (snuid).
+    /// </summary>
+    /// <param name="credentials"></param>
+    /// <param name="userId">MouseHunt profile id</param>
+    /// <returns>MouseHunt snuid</returns>
     public async Task<string> GetUserSnuid(MouseHuntAuth credentials, ulong userId)
     {
         var doc = await SendRequestAsync(credentials, "/managers/ajax/pages/friends.php", [
@@ -132,7 +141,7 @@ public class MouseHuntApiClient
         "$.tabs.profile.subtabs[0].message_board_view",
         JsonSerializerOptionsProvider.RelaxedDateTime);
 
-        return [..doc.Messages.Take(limit)];
+        return [.. doc.Messages.Take(limit)];
     }
 
     private async Task<T?> GetPageAsync<T>(MouseHuntAuth credentials, IEnumerable<(string key, string value)> parameters, JsonSerializerOptions? jsonSerializerOptions = null)
@@ -220,7 +229,7 @@ public class MouseHuntApiClient
             var path = JsonPath.Parse("$.messageData.popup.messages[0].messageData.body");
             var matches = path.Evaluate(node).Matches;
 
-            return matches?.Count > 0 && ((string?)matches[0].Value) == "Your session has expired.";
+            return matches?.Count > 0 && (string?)matches[0].Value == "Your session has expired.";
         }
     }
 

@@ -9,12 +9,12 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Configurations;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-
+using MonstroBot.API.Client;
 using MonstroBot.Models;
 
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
-namespace MonstroBot.API;
+namespace MonstroBot.API.Functions;
 
 public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings openApi, MouseHuntApiClient apiClient)
 {
@@ -22,7 +22,7 @@ public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings op
     private readonly OpenApiSettings _openApi = openApi;
     private readonly MouseHuntApiClient _apiClient = apiClient;
 
-    //[Function(nameof(RoleHttpTrigger.GetRoles))]
+    [Function(nameof(GetRoles))]
     [OpenApiOperation("getRoles", tags: ["role"], Summary = "Get all roles by ID", Description = "This checks for eligibility of all achievement roles.", Visibility = OpenApiVisibilityType.Important)]
     [OpenApiParameter(name: nameof(id), In = ParameterLocation.Path, Required = true, Type = typeof(ulong), Summary = "ID of user to return", Description = "ID of user to return", Visibility = OpenApiVisibilityType.Important)]
     [OpenApiRequestBody("application/json", bodyType: typeof(MouseHuntAuth), Required = true, Description = "Account details needed to run the requests")]
@@ -36,12 +36,17 @@ public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings op
         _logger.LogInformation("document title: {DocumentTitle}", _openApi.DocTitle);
         _logger.LogInformation("C# HTTP trigger function processed a request.");
 
+        var snuid = await _apiClient.GetUserSnuid(account, id).ConfigureAwait(false);
+
         var obj = new RoleResponse
         {
             Id = id,
             Roles = new Dictionary<Role, bool>
             {
-                { Role.Star, false }
+                { Role.Star, await _apiClient.IsStarred(account, snuid) },
+                { Role.Crown, await _apiClient.IsCrowned(account, snuid) },
+                { Role.Egg, await _apiClient.IsEggMaster(account, snuid) },
+                { Role.Checkmark, await _apiClient.IsCheckmarked(account, snuid) },
             }
         };
 
@@ -64,7 +69,7 @@ public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings op
         _logger.LogInformation("document title: {DocumentTitle}", _openApi.DocTitle);
         _logger.LogInformation("Check role {Role} on {Id}.", role, id);
 
-        if (!Enum.TryParse(role, ignoreCase: true, out  Role roleRequest))
+        if (!Enum.TryParse(role, ignoreCase: true, out Role roleRequest))
         {
             _logger.LogWarning("Invalid role {Role} supplied", role);
             return new BadRequestObjectResult($"Invalid role: {role}");

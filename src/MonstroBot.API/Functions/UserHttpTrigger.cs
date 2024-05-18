@@ -15,8 +15,9 @@ using Microsoft.OpenApi.Models;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
 using MonstroBot.Models;
+using MonstroBot.API.Client;
 
-namespace MonstroBot.API;
+namespace MonstroBot.API.Functions;
 public class UserHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings openApi, MouseHuntApiClient apiClient)
 {
     private readonly ILogger<RoleHttpTrigger> _logger = logger;

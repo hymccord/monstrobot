@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Configurations;
 using Microsoft.Extensions.Logging;
+using MonstroBot.API.Client;
 
-namespace MonstroBot.API
+namespace MonstroBot.API.Functions
 {
     public class CrownHttpTrigger
     {

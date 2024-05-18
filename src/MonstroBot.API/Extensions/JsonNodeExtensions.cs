@@ -1,9 +1,6 @@
-﻿using System.Text.Json;
-using System.Text.Json.Nodes;
+﻿using Json.Path;
 
-using Json.Path;
-
-namespace MonstroBot.API;
+namespace System.Text.Json.Nodes;
 
 public static class JsonNodeExtensions
 {
@@ -39,6 +36,6 @@ public static class JsonNodeExtensions
             return null;
         }
 
-        return [..pathResult.Matches!.Select(n => n.Value)];
+        return [.. pathResult.Matches!.Select(n => n.Value)];
     }
 }

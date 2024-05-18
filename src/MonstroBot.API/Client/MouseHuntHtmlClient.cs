@@ -6,7 +6,7 @@ using AngleSharp;
 
 using Microsoft.AspNetCore.WebUtilities;
 
-namespace MonstroBot.API;
+namespace MonstroBot.API.Client;
 public class MouseHuntHtmlClient
 {
     private static readonly Uri s_mouseHuntBaseAddress = new("https://www.mousehuntgame.com");

@@ -5,8 +5,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.OpenApi.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
-using MonstroBot.API;
+using MonstroBot.API.Client;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(worker => worker.UseNewtonsoftJson())
