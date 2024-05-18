@@ -4,9 +4,9 @@ meta {
   seq: 1
 }
 
-post {
+get {
   url: {{baseUrl}}/api/role/1/star
-  body: json
+  body: none
   auth: none
 }
 
@@ -15,4 +15,8 @@ body:json {
     "hgToken": "{{hgToken}}",
     "uniqueHash": "{{uniqueHash}}"
   }
+}
+
+vars:pre-request {
+  userId: 1
 }

@@ -10,9 +10,8 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using MonstroBot.API.Client;
+using MonstroBot.API.Services;
 using MonstroBot.Models;
-
-using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
 namespace MonstroBot.API.Functions;
 
@@ -24,17 +23,23 @@ public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings op
 
     [Function(nameof(GetRoles))]
     [OpenApiOperation("getRoles", tags: ["role"], Summary = "Get all roles by ID", Description = "This checks for eligibility of all achievement roles.", Visibility = OpenApiVisibilityType.Important)]
+    [OpenApiParameter(name: "hgToken", In = ParameterLocation.Header, Required = true, Type = typeof(string), Summary = "MouseHunt session token", Visibility = OpenApiVisibilityType.Important)]
+    [OpenApiParameter(name: "uniqueHash", In = ParameterLocation.Header, Required = true, Type = typeof(string), Summary = "MouseHunt profile unique hash", Visibility = OpenApiVisibilityType.Important)]
     [OpenApiParameter(name: nameof(id), In = ParameterLocation.Path, Required = true, Type = typeof(ulong), Summary = "ID of user to return", Description = "ID of user to return", Visibility = OpenApiVisibilityType.Important)]
-    [OpenApiRequestBody("application/json", bodyType: typeof(MouseHuntAuth), Required = true, Description = "Account details needed to run the requests")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(RoleResponse), Summary = "successful operation", Description = "successful operation")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.BadRequest, Description = "Invalid ID supplied")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Description = "Supplied credentials are invalid or expired")]
-    public async Task<IActionResult> GetRoles([HttpTrigger(AuthorizationLevel.Anonymous, "POST", Route = "role/{id}")] HttpRequest req,
-        [FromBody] MouseHuntAuth account,
+    public async Task<IActionResult> GetRoles([HttpTrigger(AuthorizationLevel.Anonymous, "GET", "POST", Route = "role/{id}")] HttpRequest req,
         ulong id)
     {
         _logger.LogInformation("document title: {DocumentTitle}", _openApi.DocTitle);
         _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+        MouseHuntAuth? account = MouseHuntAuthService.GetCredentialsFromHeader(req.Headers);
+        if (account is null)
+        {
+            return new BadRequestObjectResult("No header credentials supplied.");
+        }
 
         var snuid = await _apiClient.GetUserSnuid(account, id).ConfigureAwait(false);
 
@@ -55,19 +60,25 @@ public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings op
 
     [Function(nameof(CheckRole))]
     [OpenApiOperation("checkRole", tags: ["role"], Summary = "Achievement eligibility by MHID", Description = "This checks for eligibility of an achievement role.", Visibility = OpenApiVisibilityType.Important)]
+    [OpenApiParameter(name: "hgToken", In = ParameterLocation.Header, Required = true, Type = typeof(string), Summary = "MouseHunt session token", Visibility = OpenApiVisibilityType.Important)]
+    [OpenApiParameter(name: "uniqueHash", In = ParameterLocation.Header, Required = true, Type = typeof(string), Summary = "MouseHunt profile unique hash", Visibility = OpenApiVisibilityType.Important)]
     [OpenApiParameter(name: nameof(id), In = ParameterLocation.Path, Required = true, Type = typeof(ulong), Summary = "MHID of user to return", Description = "MouseHunt profile ID of user to return", Visibility = OpenApiVisibilityType.Important)]
     [OpenApiParameter(name: nameof(role), In = ParameterLocation.Path, Required = true, Type = typeof(Role), Summary = "Achievement role to check", Description = "Achievement role to check", Visibility = OpenApiVisibilityType.Important)]
-    [OpenApiRequestBody("application/json", bodyType: typeof(MouseHuntAuth), Required = true, Description = "Account details needed to run the requests")]
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(RoleCheckResponse), Summary = "successful operation", Description = "successful operation")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.BadRequest, Description = "Invalid ID supplied")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Description = "Supplied credentials are invalid or expired")]
-    public async Task<IActionResult> CheckRole([HttpTrigger(AuthorizationLevel.Anonymous, ["POST"], Route = "role/{id}/{role}")] HttpRequest req,
-        [FromBody] MouseHuntAuth account,
+    public async Task<IActionResult> CheckRole([HttpTrigger(AuthorizationLevel.Anonymous, "GET", "POST", Route = "role/{id}/{role}")] HttpRequest req,
         string role,
         ulong id)
     {
         _logger.LogInformation("document title: {DocumentTitle}", _openApi.DocTitle);
         _logger.LogInformation("Check role {Role} on {Id}.", role, id);
+
+        MouseHuntAuth? account = MouseHuntAuthService.GetCredentialsFromHeader(req.Headers);
+        if (account is null)
+        {
+            return new BadRequestObjectResult("No header credentials supplied.");
+        }
 
         if (!Enum.TryParse(role, ignoreCase: true, out Role roleRequest))
         {
