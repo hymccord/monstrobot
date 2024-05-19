@@ -6,6 +6,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.OpenApi.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MonstroBot.API.Client;
+using MonstroBot.API.Services;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(worker => worker.UseNewtonsoftJson())
@@ -19,8 +20,8 @@ var host = new HostBuilder()
             options.Converters.Add(new JsonStringEnumConverter());
         });
 
-        services.AddSingleton<MouseHuntApiClient>();
-        services.AddSingleton<MouseHuntHtmlClient>();
+        services.AddTransient<MouseHuntApiClient>();
+        services.AddTransient<IRandomWordPhraseGenerator, RandomWordPhraseGenerator>();
     })
     .Build();
 

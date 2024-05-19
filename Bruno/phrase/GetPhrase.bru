@@ -1,0 +1,16 @@
+meta {
+  name: GetPhrase
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/phrase?numAdjectives=3&numNouns=2
+  body: none
+  auth: none
+}
+
+query {
+  numAdjectives: 3
+  numNouns: 2
+}
