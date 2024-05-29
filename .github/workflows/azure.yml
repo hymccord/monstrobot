@@ -1,14 +1,14 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy
+name: Build and deploy to Azure
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'src/**'
+      - '/csharp/src/**'
   workflow_dispatch:
 
 concurrency:
@@ -17,7 +17,7 @@ concurrency:
 
 env:
   AZURE_FUNCTIONAPP_NAME: "monstrobot"
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: "src/MonstroBot.API"
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: "/csharp/src/MonstroBot.API"
   DOTNET_VERSION: "8.0.x"
   SLOT_NAME: "staging"
   AZURE_FUNCTIONAPP_RESOURCE_GROUP: "rg-monstrobot"
@@ -39,7 +39,7 @@ jobs:
         shell: bash
         run: |
           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-          dotnet build --configuration Release --output ./output
+          dotnet build csharp --configuration Release --output ./output
           popd
 
       - name: Upload artifact for deployment

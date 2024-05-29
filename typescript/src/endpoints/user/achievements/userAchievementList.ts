@@ -67,6 +67,8 @@ export class UserAchievementList extends OpenAPIRoute {
         }
 
         const results = await AllAchievementStatus.parseAsync({
+            id: userSlug,
+            snuid: snuid,
             achievements: achievementRecord
         })
 
