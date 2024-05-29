@@ -29,7 +29,7 @@ public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings op
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(RoleResponse), Summary = "successful operation", Description = "successful operation")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.BadRequest, Description = "Invalid ID supplied")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Description = "Supplied credentials are invalid or expired")]
-    public async Task<IActionResult> GetRoles([HttpTrigger(AuthorizationLevel.Anonymous, "GET", "POST", Route = "role/{id}")] HttpRequest req,
+    public async Task<IActionResult> GetRoles([HttpTrigger(AuthorizationLevel.Anonymous, "GET", "POST", Route = "user/{id}/achievements")] HttpRequest req,
         ulong id)
     {
         _logger.LogInformation("document title: {DocumentTitle}", _openApi.DocTitle);
@@ -67,7 +67,7 @@ public class RoleHttpTrigger(ILogger<RoleHttpTrigger> logger, OpenApiSettings op
     [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(RoleCheckResponse), Summary = "successful operation", Description = "successful operation")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.BadRequest, Description = "Invalid ID supplied")]
     [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Description = "Supplied credentials are invalid or expired")]
-    public async Task<IActionResult> CheckRole([HttpTrigger(AuthorizationLevel.Anonymous, "GET", "POST", Route = "role/{id}/{role}")] HttpRequest req,
+    public async Task<IActionResult> CheckRole([HttpTrigger(AuthorizationLevel.Anonymous, "GET", "POST", Route = "user/{id}/achievements/{role}")] HttpRequest req,
         string role,
         ulong id)
     {
