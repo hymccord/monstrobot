@@ -1,13 +1,13 @@
 meta {
-  name: GetCorkboardMessages
+  name: listAchievements
   type: http
-  seq: 1
+  seq: 3
 }
 
 get {
-  url: {{baseUrl}}/api/user/{{user}}/corkboard
+  url: {{baseUrl}}/api/user/{{user}}/achievements
   body: none
-  auth: bearer
+  auth: none
 }
 
 body:json {
