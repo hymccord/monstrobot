@@ -2,7 +2,7 @@
   "profiles": {
     "MonstroBot.API": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7220"
+      "commandLineArgs": "--port 8787"
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",
