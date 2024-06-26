@@ -9,6 +9,9 @@ const zItemCategoryCompletionArray = z.object({
 const zMouseCrownBadgeGroups = z.object({
     type: z.string(),
     count: z.number(),
+    mice: z.array(z.object({
+        name: z.string(),
+    }))
 }).array();
 
 export class UserAchievementService {
@@ -31,11 +34,15 @@ export class UserAchievementService {
         "$.tabs.kings_crowns.subtabs[0].mouse_crowns.badge_groups")
 
         const mouseCrownBadgeGroups = await zMouseCrownBadgeGroups.parseAsync(object);
-        const totalCrownedMice: number = mouseCrownBadgeGroups.reduce((acc, g) => acc + g.count, 0);
+        const crownedMice = mouseCrownBadgeGroups
+            .flatMap(g => g.mice.map(m => m.name))
+            .filter(m => m !== "Mobster" && m !== "Leprechaun");
+        const totalCrownedMice: number = crownedMice.length;
 
         const resp = await fetch("https://www.mousehuntgame.com/api/get/mouse/all");
         const arr = await resp.json() as any[];
-        const totalMice = arr.length - 2;
+        const prizeMiceNotCounted = 2;
+        const totalMice = arr.length - prizeMiceNotCounted;
 
         return totalCrownedMice == totalMice;
     }
