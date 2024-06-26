@@ -1,7 +1,7 @@
 import { Url } from "url";
 import { z } from "zod";
 import jp from "jsonpath";
-import formurlencoded from "form-urlencoded";
+import formUrlEncoded from "form-urlencoded";
 
 import { AchievementStatus, CorkboardMessage } from "types";
 
@@ -11,7 +11,7 @@ export class MouseHuntApiClient {
     hg_is_ajax: "1",
   };
   private _defaultHeaders: HeadersInit = {
-    "User-Agent": "monstro-bot/1.0 (github.com/hymccord/monstrobot)",
+    "User-Agent": "monstro-bot/1.0",
     Accept: "application/json, text/javascript, */*; q=0.01",
     "Accept-Language": "en-US,en;q=0.5",
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -23,16 +23,12 @@ export class MouseHuntApiClient {
     credentials: MouseHuntCredentials,
     userId: number
   ): Promise<string> {
-    const doc = await this.postRequestAsync(
+    const doc = await this.fetchWithRetriesAsync(
       credentials,
-      "/managers/ajax/pages/friends.php",
-      {
-        action: "community_search_by_id",
-        user_id: `${userId}`,
-      }
+      `/api/get/usersnuid/${userId}`,
     );
 
-    var data = jp.value(doc, "$.friend.sn_user_id") ?? "";
+    var data = jp.value(doc, "$.sn_user_id") ?? "";
 
     return data;
   }
@@ -41,14 +37,15 @@ export class MouseHuntApiClient {
     credentials: MouseHuntCredentials,
     snuid: string
   ): Promise<z.infer<typeof CorkboardMessage>> {
-    const object = await this.getPageAsync(
+    let object = await this.fetchWithRetriesAsync(
       credentials,
+      '/api/get/corkboard/profile',
       {
-        page_class: "HunterProfile",
-        "page_arguments[snuid]": snuid,
+        sn_user_id: snuid,
       },
-      "$.tabs.profile.subtabs[0].message_board_view.messages[0]"
     );
+
+    object = jp.value(object, "$.corkboard_messages[0]")
 
     return await CorkboardMessage.parseAsync(object);
   }
@@ -89,12 +86,17 @@ export class MouseHuntApiClient {
     relativeUrl: string,
     formData: Record<string, string>
   ): Promise<any> {
+    const content = {
+      ...this._defaultFormData,
+      ...formData,
+      uh: credentials.uniqueHash,
+    };
     let data;
     try {
       data = await this.fetchWithRetriesAsync(
-        `https://www.mousehuntgame.com${relativeUrl}`,
         credentials,
-        formData
+        relativeUrl,
+        content
       );
     } catch (error) {
       console.log(error);
@@ -104,25 +106,19 @@ export class MouseHuntApiClient {
   }
 
   private async fetchWithRetriesAsync(
-    url: string,
     credentials: MouseHuntCredentials,
-    formData: Record<string, string>
+    relativeUrl: string,
+    formData: Record<string, string> = {}
   ): Promise<unknown> {
     try {
       for (let tries = 0; tries < 2; tries++) {
-        const content = formurlencoded({
-          ...this._defaultFormData,
-          ...formData,
-          uh: credentials.uniqueHash,
-        });
-
-        const response = await fetch(url, {
+        const response = await fetch(`https://www.mousehuntgame.com${relativeUrl}`, {
           method: "POST",
           headers: {
             ...this._defaultHeaders,
             Cookie: `HG_TOKEN=${credentials.hgToken}`,
           },
-          body: content,
+          body: formUrlEncoded(formData),
         });
 
         if (!response.ok) {
@@ -141,7 +137,7 @@ export class MouseHuntApiClient {
           "$.messageData.popup.messages[0].messageData.body"
         );
         if (popupMessage == "Your session has expired.") {
-          await this.RefreshSession(credentials);
+          await this.refreshSession(credentials);
           continue;
         }
 
@@ -154,11 +150,11 @@ export class MouseHuntApiClient {
     throw new Error();
   }
 
-  private async RefreshSession(credentials: MouseHuntCredentials) {
+  private async refreshSession(credentials: MouseHuntCredentials) {
     await fetch("https://www.mousehuntgame.com/camp.php", {
       method: "GET",
       headers: {
-        "User-Agent": "monstrobot/1.0 (github.com/hymccord/monstrobot)",
+        "User-Agent": "monstrobot/1.0",
         Accept:
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
         Cookie: `HG_TOKEN=${credentials.hgToken}`,

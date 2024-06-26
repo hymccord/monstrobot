@@ -30,11 +30,11 @@ export class UserCorkboardFetch extends OpenAPIRoute {
     },
     responses: {
       "200": {
-        description: "Returns a single task if found",
+        description: "Returns a single message if found",
         schema: CorkboardMessage,
       },
       "400": {
-        description: "Invalid ID supplied",
+        description: "Bad request",
       },
       "401": {
         description: "Credentials are invalid",
