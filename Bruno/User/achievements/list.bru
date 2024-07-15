@@ -1,11 +1,11 @@
 meta {
-  name: CheckRole
+  name: list
   type: http
-  seq: 1
+  seq: 2
 }
 
 get {
-  url: {{baseUrl}}/api/role/1/star
+  url: {{baseUrl}}/api/user/{{user}}/achievements
   body: none
   auth: none
 }
@@ -18,5 +18,5 @@ body:json {
 }
 
 vars:pre-request {
-  userId: 1
+  user: 4503792
 }
