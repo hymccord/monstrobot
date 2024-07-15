@@ -1,35 +1,26 @@
-import {
-    DataOf,
-    Enumeration,
-    Header,
-    Num,
-    OpenAPIRoute,
-    OpenAPIRouteSchema,
-    Path,
-    Query,
-    Str,
-} from "@cloudflare/itty-router-openapi";
+import { OpenAPIRoute } from "chanfana";
 import { z } from "zod";
-import { Achievement, AchievementStatus, AllAchievementStatus, RandomPhrase } from "types";
+import { AchievementStatus, AllAchievementStatus } from "types";
 import { generateSlug } from "random-word-slugs";
 import { MouseHuntApiClient } from "clients/mouseHuntApiClient";
 import { UserAchievementService } from "services/userAchievementService";
 
 export class UserAchievementList extends OpenAPIRoute {
-    static schema = {
+    schema = {
         tags: ["User", "Achievements"],
-        parameters: {
-            userSlug: Path(Num, {
-                description: "Profile id slug",
+        request: {
+            params: z.object({
+                userSlug: z.number().describe("Profile id slug"),
             }),
-            hgToken: Header(Str, {
-                description:
-                    "HitGrab session token required for API authorization",
-                required: true,
-            }),
-            uniqueHash: Header(Str, {
-                description: "Unique hash required for API authorization",
-                required: true,
+            headers: z.object({
+                hgToken: z
+                    .string()
+                    .describe(
+                        "HitGrab session token required for API authorization"
+                    ),
+                uniqueHash: z
+                    .string()
+                    .describe("Unique hash required for API authorization"),
             }),
         },
         responses: {
@@ -39,16 +30,12 @@ export class UserAchievementList extends OpenAPIRoute {
             },
             "400": {
                 description: "Bad request",
-            }
+            },
         },
     };
 
-    async handle(
-        request: Request,
-        env: any,
-        context: any,
-        data: DataOf<typeof UserAchievementList.schema>
-    ) {
+    async handle(c: any) {
+        const data = await this.getValidatedData<typeof this.schema>();
         const apiClient = new MouseHuntApiClient();
 
         const { userSlug } = data.params;
@@ -60,17 +47,17 @@ export class UserAchievementList extends OpenAPIRoute {
         const snuid = await apiClient.getUserSnuid(data.headers, userSlug);
 
         const achievementRecord = {
-            "star": await achievementService.HasCaughtAllLocationMice(snuid),
-            "crown": await achievementService.HasBronzedAllMice(snuid),
-            "checkmark": await achievementService.HasAllItems(snuid),
-            "egg": await achievementService.IsEggMaster(snuid),
-        }
+            star: await achievementService.HasCaughtAllLocationMice(snuid),
+            crown: await achievementService.HasBronzedAllMice(snuid),
+            checkmark: await achievementService.HasAllItems(snuid),
+            egg: await achievementService.IsEggMaster(snuid),
+        };
 
         const results = await AllAchievementStatus.parseAsync({
             id: userSlug,
             snuid: snuid,
-            achievements: achievementRecord
-        })
+            achievements: achievementRecord,
+        });
 
         return results;
     }

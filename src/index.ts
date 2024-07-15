@@ -1,29 +1,30 @@
-import { OpenAPIRouter } from "@cloudflare/itty-router-openapi";
+import { fromHono } from "chanfana";
+import { Hono } from "hono";
 import { UserCorkboardFetch } from "endpoints/user/userCorkboardFetch";
 import { RandomPhraseFetch } from "endpoints/randomPhraseFetch";
 import { UserAchievementFetch } from "endpoints/user/achievements/userAchievementFetch";
 import { UserAchievementList } from "endpoints/user/achievements/userAchievementList";
 
-export const router = OpenAPIRouter({
-  docs_url: "/",
+const app = new Hono();
+
+const openapi = fromHono(app, {
+    docs_url: "/",
 });
 
-router.get("/api/phrase", RandomPhraseFetch);
-router.get("/api/user/:userSlug/corkboard", UserCorkboardFetch);
-router.get("/api/user/:userSlug/achievements", UserAchievementList)
-router.get("/api/user/:userSlug/achievements/:achievementSlug", UserAchievementFetch)
+openapi.get("/api/phrase", RandomPhraseFetch);
+openapi.get("/api/user/:userSlug/corkboard", UserCorkboardFetch);
+openapi.get("/api/user/:userSlug/achievements", UserAchievementList);
+openapi.get("/api/user/:userSlug/achievements/:achievementSlug", UserAchievementFetch);
 
 // 404 for everything else
-router.all("*", () =>
-  Response.json(
-    {
-      success: false,
-      error: "Route not found",
-    },
-    { status: 404 }
-  )
+openapi.all("*", () =>
+    Response.json(
+        {
+            success: false,
+            error: "Route not found",
+        },
+        { status: 404 }
+    )
 );
 
-export default {
-  fetch: router.handle,
-};
+export default app;

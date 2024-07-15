@@ -1,43 +1,26 @@
-import {
-    DataOf,
-    Enumeration,
-    Header,
-    Num,
-    OpenAPIRoute,
-    OpenAPIRouteSchema,
-    Path,
-    Query,
-    Str,
-} from "@cloudflare/itty-router-openapi";
+import { OpenAPIRoute } from "chanfana";
 import { z } from "zod";
-import { Achievement, AchievementStatus, RandomPhrase } from "types";
-import { generateSlug } from "random-word-slugs";
+import { AchievementStatus } from "types";
 import { MouseHuntApiClient } from "clients/mouseHuntApiClient";
 import { UserAchievementService } from "services/userAchievementService";
 
 export class UserAchievementFetch extends OpenAPIRoute {
-    static schema = {
+    schema = {
         tags: ["User", "Achievements"],
-        parameters: {
-            userSlug: Path(Num, {
-                description: "Profile id slug",
+        request: {
+            params: z.object({
+                userSlug: z.number().describe("Profile id slug"),
+                achievementSlug: z.string().describe("Achievement slug"),
             }),
-            achievementSlug: Path(Enumeration, {
-                values: {
-                    star: "star",
-                    crown: "crown",
-                    egg: "egg",
-                    checkmark: "checkmark",
-                },
-            }),
-            hgToken: Header(Str, {
-                description:
-                    "HitGrab session token required for API authorization",
-                required: true,
-            }),
-            uniqueHash: Header(Str, {
-                description: "Unique hash required for API authorization",
-                required: true,
+            headers: z.object({
+                hgToken: z
+                    .string()
+                    .describe(
+                        "HitGrab session token required for API authorization"
+                    ),
+                uniqueHash: z
+                    .string()
+                    .describe("Unique hash required for API authorization"),
             }),
         },
         responses: {
@@ -47,16 +30,12 @@ export class UserAchievementFetch extends OpenAPIRoute {
             },
             "400": {
                 description: "Bad request",
-            }
+            },
         },
     };
 
-    async handle(
-        request: Request,
-        env: any,
-        context: any,
-        data: DataOf<typeof UserAchievementFetch.schema>
-    ) {
+    async handle(c: any) {
+        const data = await this.getValidatedData<typeof this.schema>();
         const apiClient = new MouseHuntApiClient();
 
         const { userSlug, achievementSlug } = data.params;
@@ -70,7 +49,9 @@ export class UserAchievementFetch extends OpenAPIRoute {
         const snuid = await apiClient.getUserSnuid(data.headers, userSlug);
         switch (achievementSlug) {
             case "star":
-                complete = await achievementService.HasCaughtAllLocationMice(snuid);
+                complete = await achievementService.HasCaughtAllLocationMice(
+                    snuid
+                );
                 break;
             case "crown":
                 complete = await achievementService.HasBronzedAllMice(snuid);
@@ -96,8 +77,8 @@ export class UserAchievementFetch extends OpenAPIRoute {
 
         const results = await AchievementStatus.parseAsync({
             achievement: achievementSlug,
-            complete: complete
-        })
+            complete: complete,
+        });
 
         return results;
     }
