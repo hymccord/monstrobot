@@ -4,6 +4,7 @@ import { UserCorkboardFetch } from "endpoints/user/userCorkboardFetch";
 import { RandomPhraseFetch } from "endpoints/randomPhraseFetch";
 import { UserAchievementFetch } from "endpoints/user/achievements/userAchievementFetch";
 import { UserAchievementList } from "endpoints/user/achievements/userAchievementList";
+import { UserInfoFetch } from "endpoints/user/userInfoFetch";
 
 const app = new Hono();
 
@@ -12,6 +13,7 @@ const openapi = fromHono(app, {
 });
 
 openapi.get("/api/phrase", RandomPhraseFetch);
+openapi.get("/api/user/:userSlug", UserInfoFetch);
 openapi.get("/api/user/:userSlug/corkboard", UserCorkboardFetch);
 openapi.get("/api/user/:userSlug/achievements", UserAchievementList);
 openapi.get("/api/user/:userSlug/achievements/:achievementSlug", UserAchievementFetch);

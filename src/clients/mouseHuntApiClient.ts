@@ -3,7 +3,7 @@ import { z } from "zod";
 import jp from "jsonpath";
 import formUrlEncoded from "form-urlencoded";
 
-import { AchievementStatus, CorkboardMessage } from "types";
+import * as types from "types";
 
 export class MouseHuntApiClient {
     private _defaultFormData = {
@@ -37,10 +37,27 @@ export class MouseHuntApiClient {
         return data;
     }
 
+    public async getUserInfo(
+        credentials: MouseHuntCredentials,
+        snuid: string
+    ): Promise<z.infer<typeof types.UserInfo>> {
+        let object = await this.fetchWithRetriesAsync(
+            credentials,
+            "/api/get/profile",
+            {
+                sn_user_id: snuid,
+            }
+        );
+
+        object = jp.value(object, "$.profile_user");
+
+        return await types.UserInfo.parseAsync(object);
+    }
+
     public async getCorkboardMessage(
         credentials: MouseHuntCredentials,
         snuid: string
-    ): Promise<z.infer<typeof CorkboardMessage>> {
+    ): Promise<z.infer<typeof types.CorkboardMessage>> {
         let object = await this.fetchWithRetriesAsync(
             credentials,
             "/api/get/corkboard/profile",
@@ -51,7 +68,7 @@ export class MouseHuntApiClient {
 
         object = jp.value(object, "$.corkboard_messages[0]");
 
-        return await CorkboardMessage.parseAsync(object);
+        return await types.CorkboardMessage.parseAsync(object);
     }
 
     public async getUserData<T>(

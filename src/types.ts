@@ -4,6 +4,12 @@ export const RandomPhrase = z.object({
     phrase: z.string(),
 });
 
+export const UserInfo = z.object({
+    sn_user_id: z.string(),
+    user_id: z.number(),
+    title_id: z.number(),
+});
+
 export const CorkboardMessage = z.object({
     body: z.string(),
     sn_user_id: z.string(),
