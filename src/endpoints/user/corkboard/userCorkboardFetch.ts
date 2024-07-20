@@ -2,7 +2,7 @@ import { OpenAPIRoute } from "chanfana";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { MouseHuntApiClient } from "clients/mouseHuntApiClient";
-import { CorkboardMessage } from "types";
+import { CorkboardMessage, CorkboardMessageSchema } from "types";
 import { Context } from "hono";
 
 export class UserCorkboardFetch extends OpenAPIRoute {
@@ -27,7 +27,7 @@ export class UserCorkboardFetch extends OpenAPIRoute {
         responses: {
             "200": {
                 description: "Returns a single message if found",
-                schema: CorkboardMessage,
+                schema: CorkboardMessageSchema,
             },
             "400": {
                 description: "Bad request",
@@ -86,7 +86,7 @@ export class UserCorkboardFetch extends OpenAPIRoute {
             );
         }
 
-        let message: z.infer<typeof CorkboardMessage>;
+        let message: CorkboardMessage;
         try {
             message = await client.getCorkboardMessage(
                 {
@@ -95,6 +95,10 @@ export class UserCorkboardFetch extends OpenAPIRoute {
                 },
                 userSnuid
             );
+
+            if (message.sn_user_id !== userSnuid) {
+                throw new Error();
+            }
 
             return c.json(message);
         } catch {}

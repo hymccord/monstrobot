@@ -23,52 +23,54 @@ export class MouseHuntApiClient {
         credentials: MouseHuntCredentials,
         userId: number
     ): Promise<string> {
-        const doc = await this.fetchWithRetriesAsync(
-            credentials,
-            `/api/get/usersnuid/${userId}`
+
+        const data = await this.fetchPostAsync(credentials,
+            `/api/get/usersnuid/${userId}`,
+            UserSnuidSchema
         );
 
-        var data = jp.value(doc, "$.sn_user_id");
-
-        if (data == null) {
-            throw new Error();
+        if (this.isErrorResponse(data)) {
+            throw new ApiError(data.error.message, data.error.code);
         }
 
-        return data;
+        return data.sn_user_id;
     }
 
     public async getUserInfo(
         credentials: MouseHuntCredentials,
         snuid: string
-    ): Promise<z.infer<typeof types.UserInfo>> {
-        let object = await this.fetchWithRetriesAsync(
+    ): Promise<types.Profile> {
+        // create string from all fields in UserInfo joined with comma
+        const fields = Object.keys(types.ProfileSchema.shape).join(",");
+        const data = await this.fetchPostAsync(
             credentials,
-            "/api/get/profile",
-            {
-                sn_user_id: snuid,
-            }
+            `/api/get/user/${snuid}/${fields}`,
+            types.ProfileSchema
         );
 
-        object = jp.value(object, "$.profile_user");
+        if (this.isErrorResponse(data)) {
+            throw new ApiError(data.error.message, data.error.code);
+        }
 
-        return await types.UserInfo.parseAsync(object);
+        return data;
     }
 
     public async getCorkboardMessage(
         credentials: MouseHuntCredentials,
         snuid: string
-    ): Promise<z.infer<typeof types.CorkboardMessage>> {
-        let object = await this.fetchWithRetriesAsync(
+    ): Promise<types.CorkboardMessage> {
+        const data = await this.fetchPostAsync(
             credentials,
-            "/api/get/corkboard/profile",
-            {
-                sn_user_id: snuid,
-            }
+            '/api/get/corkboard/profile',
+            types.CorkboardSchema,
+            { sn_user_id: snuid }
         );
 
-        object = jp.value(object, "$.corkboard_messages[0]");
+        if (this.isErrorResponse(data)) {
+            throw new ApiError(data.error.message, data.error.code);
+        }
 
-        return await types.CorkboardMessage.parseAsync(object);
+        return data[0];
     }
 
     public async getUserData<T>(
@@ -99,6 +101,29 @@ export class MouseHuntApiClient {
         const page = response.page;
 
         return jp.value(page, jsonPath) as T;
+    }
+
+    private async fetchPostAsync<T extends z.Schema>(credentials: MouseHuntCredentials,
+        requestUrl: string,
+        schema: T,
+        parameters: Record<string, unknown> = {}
+    ): Promise<z.infer<T> | ErrorReponse> {
+        const response = await fetch(`https://www.mousehuntgame.com${requestUrl}`,
+            {
+                method: "POST",
+                headers: {
+                    ...this._defaultHeaders,
+                    Cookie: `HG_TOKEN=${credentials.hgToken}`,
+                },
+                body: formUrlEncoded(parameters),
+            }
+        );
+
+        const json = await response.json();
+
+        const apiResponseSchema = z.union([schema, ErrorReponseSchema]);
+
+        return apiResponseSchema.parse(json);
     }
 
     private async postRequestAsync(
@@ -183,7 +208,31 @@ export class MouseHuntApiClient {
             },
         });
     }
+
+    private isErrorResponse(response: {} | ErrorReponse): response is ErrorReponse {
+        return (response as ErrorReponse).error !== undefined;
+    }
 }
+
+class ApiError extends Error {
+    constructor(message: string, public code: number) {
+        super(message);
+    }
+}
+
+// Zod Schemas
+const UserSnuidSchema = z.object({
+    sn_user_id: z.string(),
+});
+
+const ErrorReponseSchema = z.object({
+    error: z.object({
+        message: z.string(),
+        code: z.number(),
+    })
+})
+
+type ErrorReponse = z.infer<typeof ErrorReponseSchema>;
 
 export interface MouseHuntCredentials {
     hgToken: string;

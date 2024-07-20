@@ -3,7 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { MouseHuntApiClient } from "clients/mouseHuntApiClient";
 import { Context } from "hono";
-import { UserInfo } from "types";
+import { Profile, ProfileSchema } from "types";
 
 export class UserInfoFetch extends OpenAPIRoute {
     schema = {
@@ -27,7 +27,7 @@ export class UserInfoFetch extends OpenAPIRoute {
         responses: {
             "200": {
                 description: "User info",
-                schema: UserInfo,
+                schema: ProfileSchema,
             },
             "400": {
                 description: "Bad request",
@@ -86,7 +86,7 @@ export class UserInfoFetch extends OpenAPIRoute {
             );
         }
 
-        let message: z.infer<typeof UserInfo>;
+        let message: Profile;
         try {
             message = await client.getUserInfo(
                 {

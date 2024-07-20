@@ -1,6 +1,6 @@
 import { fromHono } from "chanfana";
 import { Hono } from "hono";
-import { UserCorkboardFetch } from "endpoints/user/userCorkboardFetch";
+import { UserCorkboardFetch } from "endpoints/user/corkboard/userCorkboardFetch";
 import { RandomPhraseFetch } from "endpoints/randomPhraseFetch";
 import { UserAchievementFetch } from "endpoints/user/achievements/userAchievementFetch";
 import { UserAchievementList } from "endpoints/user/achievements/userAchievementList";

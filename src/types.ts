@@ -4,17 +4,21 @@ export const RandomPhrase = z.object({
     phrase: z.string(),
 });
 
-export const UserInfo = z.object({
+export const ProfileSchema = z.object({
     sn_user_id: z.string(),
     user_id: z.number(),
     title_id: z.number(),
 });
+export type Profile = z.infer<typeof ProfileSchema>;
 
-export const CorkboardMessage = z.object({
+export const CorkboardMessageSchema = z.object({
     body: z.string(),
     sn_user_id: z.string(),
     create_date: z.string(z.coerce.date()),
-});
+    });
+export type CorkboardMessage = z.infer<typeof CorkboardMessageSchema>;
+export const CorkboardSchema = z.array(CorkboardMessageSchema);
+export type Corkboard = z.infer<typeof CorkboardSchema>;
 
 export const Achievement = z.enum(["star", "crown", "checkmark", "egg"]);
 

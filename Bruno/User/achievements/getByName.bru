@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/user/{{user}}/achievements/star
+  url: {{baseUrl}}/api/user/:userId/achievements/:achievementType
   body: none
   auth: none
+}
+
+params:path {
+  userId: 859181
+  achievementType: star
 }
 
 body:json {
