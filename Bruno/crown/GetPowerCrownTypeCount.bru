@@ -1,0 +1,17 @@
+meta {
+  name: GetPowerCrownTypeCount
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/user/:userId/crowns/:powerTypeSlug/:crownTypeSlug
+  body: none
+  auth: none
+}
+
+params:path {
+  crownTypeSlug: silver
+  powerTypeSlug: arcane
+  userId: 859181
+}

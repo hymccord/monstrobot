@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: 
+  url: {{baseUrl}}/api/user/:userId/crowns
   body: none
   auth: none
+}
+
+params:path {
+  userId: 859181
 }

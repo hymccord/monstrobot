@@ -3,6 +3,7 @@ import { z } from "zod";
 import jp from "jsonpath";
 import formUrlEncoded from "form-urlencoded";
 
+import * as hg from "hg.types";
 import * as types from "types";
 
 export class MouseHuntApiClient {
@@ -38,7 +39,7 @@ export class MouseHuntApiClient {
 
     public async getUserInfo(
         credentials: MouseHuntCredentials,
-        snuid: string
+        snuid: string,
     ): Promise<types.Profile> {
         // create string from all fields in UserInfo joined with comma
         const fields = Object.keys(types.ProfileSchema.shape).join(",");
@@ -46,6 +47,38 @@ export class MouseHuntApiClient {
             credentials,
             `/api/get/user/${snuid}/${fields}`,
             types.ProfileSchema
+        );
+
+        if (this.isErrorResponse(data)) {
+            throw new ApiError(data.error.message, data.error.code);
+        }
+
+        return data;
+    }
+
+    public async getMice(credentials: MouseHuntCredentials): Promise<hg.Mice> {
+        const data = await this.fetchPostAsync(
+            credentials,
+            "/api/get/mouse/all",
+            hg.MiceSchema
+        );
+
+        if (this.isErrorResponse(data)) {
+            throw new ApiError(data.error.message, data.error.code);
+        }
+
+        return data;
+    }
+
+    public async getUserFields<T extends z.AnyZodObject>(
+        credentials: MouseHuntCredentials,
+        snuid: string,
+        schema: T): Promise<z.infer<T>> {
+        const fields = Object.keys(schema.shape).join(",");
+        const data = await this.fetchPostAsync(
+            credentials,
+            `/api/get/user/${snuid}/${fields}`,
+            schema
         );
 
         if (this.isErrorResponse(data)) {
@@ -238,16 +271,5 @@ export interface MouseHuntCredentials {
     hgToken: string;
     uniqueHash: string;
 }
-
-// interface MessageBoardView {
-//     messages: CorkboardMessage[];
-// }
-
-// interface CorkboardMessage {
-//     body: string
-//     user_id: number,
-//     sn_user_id: number;
-//     create_date: Date;
-// }
 
 type ServerError = { code: "internal_server_error"; message: string };

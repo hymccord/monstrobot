@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { MouseHuntApiClient, MouseHuntCredentials } from "clients/mouseHuntApiClient";
+import { ProfileSchema } from "hg.types";
 
 const zItemCategoryCompletionArray = z.object({
     name: z.string(),
@@ -24,27 +25,29 @@ export class UserAchievementService {
     }
 
     public async HasBronzedAllMice(snuid: string): Promise<boolean> {
-        const object = await this._apiClient.getPageAsync(this._credentials, {
-            "page_class": "HunterProfile",
-            "page_arguments[legacyMode]": "",
-            "page_arguments[tab]": "kings_crowns",
-            "page_arguments[sub_tab]": "false",
-            "page_arguments[snuid]": snuid,
-        },
-        "$.tabs.kings_crowns.subtabs[0].mouse_crowns.badge_groups")
+        const profileMiceSchema = ProfileSchema.pick({
+            mice: true
+        });
+        const data = await this._apiClient.getUserFields(this._credentials,
+            snuid,
+            profileMiceSchema
+        );
 
-        const mouseCrownBadgeGroups = await zMouseCrownBadgeGroups.parseAsync(object);
-        const crownedMice = mouseCrownBadgeGroups
-            .flatMap(g => g.mice.map(m => m.name))
-            .filter(m => m !== "Mobster" && m !== "Leprechaun");
-        const totalCrownedMice: number = crownedMice.length;
+        if (data instanceof Error) {
+            throw data;
+        }
 
-        const resp = await fetch("https://www.mousehuntgame.com/api/get/mouse/all");
-        const arr = await resp.json() as any[];
-        const prizeMiceNotCounted = 2;
-        const totalMice = arr.length - prizeMiceNotCounted;
+        let allMiceBronze = true;
+        for (const mouse of data.mice) {
+            // ids for Leprechaun and Mobster
+            if (mouse.mouse_id === 113 || mouse.mouse_id === 128) {
+                continue;
+            }
 
-        return totalCrownedMice == totalMice;
+            allMiceBronze &&= mouse.num_catches >= 10;
+        }
+
+        return allMiceBronze;
     }
 
     public async HasAllItems(snuid: string): Promise<boolean> {

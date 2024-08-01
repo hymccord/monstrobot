@@ -1,4 +1,4 @@
-import { OpenAPIRoute } from "chanfana";
+import { OpenAPIRoute, OpenAPIRouteSchema } from "chanfana";
 import { z } from "zod";
 import { AchievementStatus } from "types";
 import { MouseHuntApiClient } from "clients/mouseHuntApiClient";
@@ -26,7 +26,11 @@ export class UserAchievementFetch extends OpenAPIRoute {
         responses: {
             "200": {
                 description: "",
-                schema: AchievementStatus,
+                content: {
+                    "application/json": {
+                        schema: AchievementStatus,
+                    }
+                }
             },
             "400": {
                 description: "Bad request",
