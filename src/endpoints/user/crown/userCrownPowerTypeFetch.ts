@@ -28,7 +28,14 @@ export class UserCrownPowerTypeFetch extends OpenAPIRoute {
         responses: {
             "200": {
                 description: "A list of crown counts",
-                schema: z.object({}),
+                content: {
+                    "application/json": {
+                        schema: z.object({
+                            count: z.number(),
+                            percent: z.number(),
+                        })
+                    }
+                }
             },
             "400": {
                 description: "Bad request",
