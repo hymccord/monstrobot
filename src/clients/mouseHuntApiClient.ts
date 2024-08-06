@@ -103,7 +103,7 @@ export class MouseHuntApiClient {
             throw new ApiError(data.error.message, data.error.code);
         }
 
-        return data[0];
+        return data.corkboard_messages[0];
     }
 
     public async getUserData<T>(

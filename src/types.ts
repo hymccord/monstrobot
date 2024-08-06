@@ -13,11 +13,13 @@ export type Profile = z.infer<typeof ProfileSchema>;
 
 export const CorkboardMessageSchema = z.object({
     body: z.string(),
-    sn_user_id: z.string(),
+    sn_user_id: z.coerce.string(),
     create_date: z.string(z.coerce.date()),
     });
 export type CorkboardMessage = z.infer<typeof CorkboardMessageSchema>;
-export const CorkboardSchema = z.array(CorkboardMessageSchema);
+export const CorkboardSchema = z.object({
+    corkboard_messages: z.array(CorkboardMessageSchema)
+});
 export type Corkboard = z.infer<typeof CorkboardSchema>;
 
 export const Achievement = z.enum(["star", "crown", "checkmark", "egg"]);

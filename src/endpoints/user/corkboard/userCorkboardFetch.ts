@@ -97,7 +97,7 @@ export class UserCorkboardFetch extends OpenAPIRoute {
             );
 
             if (message.sn_user_id !== userSnuid) {
-                throw new Error();
+                message.body = "Montrobot Error: Message author does not match user.";
             }
 
             return c.json(message);
