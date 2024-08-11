@@ -32,7 +32,7 @@ export class UserCrownService {
             law: 0,
             rift: 0,
             event: 0,
-            normal: 0
+            multi: 0
         };
 
         for (const mouseId of Object.keys(classes).map(Number)) {
@@ -155,7 +155,7 @@ export class UserCrownService {
             const keysWithHighestValue = Object.keys(effectivenesses).filter(key => effectivenesses[key] === highestValue);
 
             if (keysWithHighestValue.length > 1) {
-                mice[mouse.id] = "normal";
+                mice[mouse.id] = "multi";
             } else {
                 mice[mouse.id] = keysWithHighestValue[0] as PowerType;
             }
@@ -181,7 +181,7 @@ const powerCrownTypes = [
     "law",
     "rift",
     "event",
-    "normal",
+    "multi",
 ] as const;
 export const powerCrownTypesSchema = z.enum(powerCrownTypes);
 
