@@ -5,9 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/user/{{user}}/corkboard
+  url: {{baseUrl}}/api/user/:userId/corkboard
   body: none
   auth: bearer
+}
+
+params:path {
+  userId: 3738013
 }
 
 body:json {
@@ -15,8 +19,4 @@ body:json {
     "hgToken": "{{hgToken}}",
     "uniqueHash": "{{uniqueHash}}"
   }
-}
-
-vars:pre-request {
-  user: 444
 }

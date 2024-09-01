@@ -1,0 +1,19 @@
+meta {
+  name: delete
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/api/identify/mousehunt/:id
+  body: none
+  auth: bearer
+}
+
+params:path {
+  id: 859181
+}
+
+auth:bearer {
+  token: {{API_KEY}}
+}

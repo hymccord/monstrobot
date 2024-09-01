@@ -1,0 +1,19 @@
+meta {
+  name: delete
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/api/identify/discord/:id
+  body: none
+  auth: bearer
+}
+
+params:path {
+  id: 148604445800923137
+}
+
+auth:bearer {
+  token: {{API_KEY}}
+}

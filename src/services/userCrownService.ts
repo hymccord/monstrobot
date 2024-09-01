@@ -173,15 +173,15 @@ type CrownType = z.infer<typeof crownTypeSchema>;
 const powerCrownTypes = [
     "arcane",
     "draconic",
+    "event",
     "forgotten",
     "hydro",
+    "law",
+    "multi",
     "physical",
+    "rift",
     "shadow",
     "tactical",
-    "law",
-    "rift",
-    "event",
-    "multi",
 ] as const;
 export const powerCrownTypesSchema = z.enum(powerCrownTypes);
 

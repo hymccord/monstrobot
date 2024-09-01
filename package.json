@@ -6,21 +6,24 @@
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "start": "wrangler dev",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "generate": "drizzle-kit generate --name "
   },
   "dependencies": {
-    "chanfana": "^2.0.2",
+    "chanfana": "^2.0.4",
+    "drizzle-orm": "^0.33.0",
     "form-urlencoded": "^6.1.5",
-    "hono": "^4.4.13",
+    "hono": "^4.5.9",
     "jsonpath": "^1.1.1",
     "random-word-slugs": "^0.1.7",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "4.20240712.0",
+    "@cloudflare/workers-types": "^4.20240821.1",
     "@types/jsonpath": "^0.2.4",
     "@types/node": "^20.14.10",
     "@types/service-worker-mock": "^2.0.1",
-    "wrangler": "^3.64.0"
+    "drizzle-kit": "^0.24.2",
+    "wrangler": "^3.72.3"
   }
 }

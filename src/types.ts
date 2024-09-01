@@ -1,4 +1,7 @@
+import { DrizzleD1Database } from "drizzle-orm/d1";
+import * as schema from "./schema";
 import { z } from "zod";
+import { Context } from "hono";
 
 export const RandomPhrase = z.object({
     phrase: z.string(),
@@ -34,3 +37,5 @@ export const AllAchievementStatus = z.object({
     snuid: z.string(),
     achievements: z.record(Achievement, z.boolean()),
 });
+
+export type MonstroDb = DrizzleD1Database<typeof schema>;
