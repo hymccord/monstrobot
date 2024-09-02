@@ -81,6 +81,6 @@ export class IdentifyCreate extends OpenAPIRoute {
         return c.json({
             discordId,
             mousehuntId,
-        });
+        }, { status: 201 });
     }
 }
