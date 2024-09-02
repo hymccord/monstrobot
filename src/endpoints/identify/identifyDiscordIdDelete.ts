@@ -15,13 +15,6 @@ export class IdentifyDiscordIdDelete extends OpenAPIRoute {
         responses: {
             204: {
                 description: "Identified user",
-                content: {
-                    'application/json': {
-                        schema: z.object({
-                            success: z.literal(true),
-                        }),
-                    },
-                },
             },
             404: {
                 description: "User not found",
