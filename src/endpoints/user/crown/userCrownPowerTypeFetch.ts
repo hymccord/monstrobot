@@ -76,21 +76,21 @@ export class UserCrownPowerTypeFetch extends OpenAPIRoute {
         } catch (e) {
             if (e instanceof Response) {
                 if (e.status == 400) {
-                    return Response.json(
+                    return c.json(
                         {
                             success: false,
                             error: "User not found",
                         },
-                        { status: 404 }
+                        404
                     );
                 }
             }
-            return Response.json(
+            return c.json(
                 {
                     success: false,
                     error: "Invalid credentials",
                 },
-                { status: 401 }
+                401
             );
         }
 
@@ -107,10 +107,9 @@ export class UserCrownPowerTypeFetch extends OpenAPIRoute {
             }
         } catch {}
 
-        return Response.json({
+        return c.json({
             success: false,
             error: "Error parsing crown data",
-        },
-        { status: 400 })
+        }, 400);
     }
 }

@@ -51,7 +51,7 @@ export class IdentifyMouseHuntIdFetch extends OpenAPIRoute {
             return c.json({
                 success: false,
                 error: "User not found",
-            }, { status: 404 });
+            }, 404);
         }
 
         return c.json({

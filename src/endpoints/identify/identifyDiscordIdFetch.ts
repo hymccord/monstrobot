@@ -45,7 +45,6 @@ export class IdentifyDiscordIdFetch extends OpenAPIRoute {
         const { id } = data.params;
 
         const user = await db.query.discordMouseHuntUsers.findFirst({
-            // @ts-expect-error drizzle doesn't yet support bigint, so we can use a string for now
             where: eq(discordMouseHuntUsers.id, id),
         });
 
@@ -53,7 +52,7 @@ export class IdentifyDiscordIdFetch extends OpenAPIRoute {
             return c.json({
                 success: false,
                 error: "User not found",
-            }, { status: 404 });
+            }, 404);
         }
 
         return c.json({

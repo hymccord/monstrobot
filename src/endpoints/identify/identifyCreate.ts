@@ -66,7 +66,7 @@ export class IdentifyCreate extends OpenAPIRoute {
             return c.json({
                 success: false,
                 error: "ID already exists",
-            }, { status: 409 });
+            }, 409);
         }
 
         try {
@@ -75,12 +75,12 @@ export class IdentifyCreate extends OpenAPIRoute {
             return c.json({
                 success: false,
                 error: "Failed to create user",
-            }, { status: 400 });
+            }, 400);
         }
 
         return c.json({
             discordId,
             mousehuntId,
-        }, { status: 201 });
+        }, 201);
     }
 }

@@ -43,7 +43,7 @@ export class IdentifyDiscordIdDelete extends OpenAPIRoute {
             return c.json({
                 success: false,
                 error: "User not found",
-            }, { status: 404 });
+            }, 404);
         }
 
         c.status(204);

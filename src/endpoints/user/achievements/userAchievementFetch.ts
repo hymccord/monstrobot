@@ -67,14 +67,12 @@ export class UserAchievementFetch extends OpenAPIRoute {
                 complete = await achievementService.IsEggMaster(snuid);
                 break;
             default:
-                return Response.json(
+                return c.json(
                     {
                         success: false,
                         error: "Invalid achievement",
                     },
-                    {
-                        status: 400,
-                    }
+                    400
                 );
                 break;
         }
