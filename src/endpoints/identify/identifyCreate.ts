@@ -6,6 +6,7 @@ import { Context } from "hono";
 
 export class IdentifyCreate extends OpenAPIRoute {
     schema = {
+        tags: ["Identify"],
         request: {
             body: {
                 content: {
@@ -18,6 +19,11 @@ export class IdentifyCreate extends OpenAPIRoute {
                 },
             },
         },
+        security: [
+            {
+                bearerAuth: [],
+            }
+        ],
         responses: {
             201: {
                 description: "Created",
@@ -29,6 +35,14 @@ export class IdentifyCreate extends OpenAPIRoute {
                         }),
                     },
                 },
+            },
+            401: {
+                description: "Unauthorized",
+                content: {
+                    'text/plain': {
+                        schema: z.literal("Unauthorized"),
+                    },
+                }
             },
             409: {
                 description: "ID already exists",

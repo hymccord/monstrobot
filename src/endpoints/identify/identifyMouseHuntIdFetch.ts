@@ -6,11 +6,17 @@ import { Context } from "hono";
 
 export class IdentifyMouseHuntIdFetch extends OpenAPIRoute {
     schema = {
+        tags: ["Identify"],
         request: {
             params: z.object({
                 id: z.number().describe("MouseHunt Profile ID"),
             }),
         },
+        security: [
+            {
+                bearerAuth: [],
+            }
+        ],
         responses: {
             200: {
                 description: "Identified user",
@@ -22,6 +28,14 @@ export class IdentifyMouseHuntIdFetch extends OpenAPIRoute {
                         }),
                     },
                 },
+            },
+            401: {
+                description: "Unauthorized",
+                content: {
+                    'text/plain': {
+                        schema: z.literal("Unauthorized"),
+                    },
+                }
             },
             404: {
                 description: "User not found",

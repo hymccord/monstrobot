@@ -6,11 +6,17 @@ import { Context } from "hono";
 
 export class IdentifyDiscordIdFetch extends OpenAPIRoute {
     schema = {
+        tags: ["Identify"],
         request: {
             params: z.object({
                 id: z.string().describe("Discord ID"), // TODO: Change to bigint when drizzle supports bigint
             }),
         },
+        security: [
+            {
+                bearerAuth: [],
+            }
+        ],
         responses: {
             200: {
                 description: "Identified user",
@@ -22,6 +28,14 @@ export class IdentifyDiscordIdFetch extends OpenAPIRoute {
                         }),
                     },
                 },
+            },
+            401: {
+                description: "Unauthorized",
+                content: {
+                    'text/plain': {
+                        schema: z.literal("Unauthorized"),
+                    },
+                }
             },
             404: {
                 description: "User not found",
