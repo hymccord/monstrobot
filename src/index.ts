@@ -1,8 +1,8 @@
 import { fromHono } from "chanfana";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
+import { bearerAuth } from "hono/bearer-auth";
 import { injectDB } from "middleware/injectDB";
-import { apiKeyAuth } from "middleware/apiKeyAuth";
 import { RandomPhraseFetch } from "endpoints/randomPhraseFetch";
 import { UserAchievementFetch } from "endpoints/user/achievements/userAchievementFetch";
 import { UserAchievementList } from "endpoints/user/achievements/userAchievementList";
@@ -35,7 +35,14 @@ openapi.get("/api/user/:userSlug/crowns", UserCrownList);
 openapi.get("/api/user/:userSlug/crowns/:powerTypeSlug", UserCrownPowerFetch);
 openapi.get("/api/user/:userSlug/crowns/:powerTypeSlug/:crownTypeSlug", UserCrownPowerTypeFetch);
 
-openapi.use("/api/identify/*", apiKeyAuth);
+openapi.use("/api/identify/*", bearerAuth({
+    verifyToken: async (token: string, c: Context) => {
+        const env: Env = c.env;
+        const userId = await env.API_KEYS.get(token);
+
+        return userId != null;
+    }
+}));
 openapi.use("/api/identify/*", injectDB);
 openapi.post("/api/identify", IdentifyCreate);
 openapi.get("/api/identify/mousehunt/:id", IdentifyMouseHuntIdFetch);
