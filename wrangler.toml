@@ -18,8 +18,17 @@ workers_dev = true
 # - https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 # Note: Use secrets to store sensitive data.
 # - https://developers.cloudflare.com/workers/configuration/secrets/
-# [vars]
-# MY_VARIABLE = "production_value"
+[vars]
+ENVIRONMENT = "dev"
+SENTRY_DSN = ''
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+SENTRY_DSN = "https://2c2d102b0dabeff5fa38fc6f722d0d1c@o4506719715196928.ingest.us.sentry.io/4507934807818240"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+SENTRY_DSN = "https://2c2d102b0dabeff5fa38fc6f722d0d1c@o4506719715196928.ingest.us.sentry.io/4507934807818240"
 
 # Bind the Workers AI model catalog. Run machine learning models, powered by serverless GPUs, on Cloudflare’s global network
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#workers-ai
@@ -40,6 +49,18 @@ workers_dev = true
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#d1-databases
 [[d1_databases]]
 binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "monstrobot-db"
+database_id = "4d73bdd4-5c2e-4735-be3e-2b3d1ab80a9f"
+migrations_dir = "drizzle"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "monstrobot-staging-db"
+database_id = "86bead35-bb26-4784-b4a2-12d974d5b709"
+migrations_dir = "drizzle"
+
+[[env.production.d1_databases]]
+binding = "DB"
 database_name = "monstrobot-db"
 database_id = "4d73bdd4-5c2e-4735-be3e-2b3d1ab80a9f"
 migrations_dir = "drizzle"
@@ -72,6 +93,14 @@ migrations_dir = "drizzle"
 # Bind a KV Namespace. Use KV as persistent storage for small key-value pairs.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#kv-namespaces
 [[kv_namespaces]]
+binding = "API_KEYS"
+id = "b78377fc03f9446d91ec44c19b450263"
+
+[[env.staging.kv_namespaces]]
+binding = "API_KEYS"
+id = "23fee5a4a3fc4cc39b487c1aa2dc29fd"
+
+[[env.production.kv_namespaces]]
 binding = "API_KEYS"
 id = "b78377fc03f9446d91ec44c19b450263"
 

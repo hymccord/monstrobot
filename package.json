@@ -10,6 +10,7 @@
     "generate": "drizzle-kit generate --name "
   },
   "dependencies": {
+    "@hono/sentry": "^1.2.0",
     "chanfana": "^2.0.4",
     "drizzle-orm": "^0.33.0",
     "form-urlencoded": "^6.1.5",
