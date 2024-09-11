@@ -44,4 +44,5 @@ jobs:
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          environment: production
+          command: deploy --env production --outdir dist
+      - run: bun sentry:sourcemaps

@@ -2,12 +2,15 @@
 name = "monstrobot"
 main = "src/index.ts"
 compatibility_date = "2024-05-24"
+upload_source_maps = true
 
 [env.staging]
 workers_dev = true
+upload_source_maps = true
 
 [env.production]
 name = "monstrobot"
+upload_source_maps = true
 
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Worker, running it closer to your back-end infrastructure

@@ -7,7 +7,8 @@
     "dev": "wrangler dev",
     "start": "wrangler dev",
     "cf-typegen": "wrangler types",
-    "generate": "drizzle-kit generate --name "
+    "generate": "drizzle-kit generate --name ",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org hankmccord --project monstrobot ./dist && sentry-cli sourcemaps upload --org hankmccord --project monstrobot ./dist"
   },
   "dependencies": {
     "@hono/sentry": "^1.2.0",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240821.1",
+    "@sentry/cli": "^2.36.1",
     "@types/jsonpath": "^0.2.4",
     "@types/node": "^20.14.10",
     "@types/service-worker-mock": "^2.0.1",
