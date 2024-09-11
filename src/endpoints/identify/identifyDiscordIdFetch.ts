@@ -3,8 +3,6 @@ import { eq } from "drizzle-orm";
 import { OpenAPIRoute } from "chanfana";
 import { z } from "zod";
 import { Context } from "hono";
-import { DrizzleD1Database } from "drizzle-orm/d1";
-import { MonstroDb } from "types";
 
 export class IdentifyDiscordIdFetch extends OpenAPIRoute {
     schema = {
@@ -41,7 +39,7 @@ export class IdentifyDiscordIdFetch extends OpenAPIRoute {
 
     async handle(c: Context) {
         const data = await this.getValidatedData<typeof this.schema>();
-        const db: MonstroDb = c.get("db");
+        const db = c.get("db");
         const { id } = data.params;
 
         const user = await db.query.discordMouseHuntUsers.findFirst({

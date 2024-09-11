@@ -3,7 +3,6 @@ import { eq, or } from "drizzle-orm";
 import { OpenAPIRoute } from "chanfana";
 import { z } from "zod";
 import { Context } from "hono";
-import { MonstroDb } from "types";
 
 export class IdentifyCreate extends OpenAPIRoute {
     schema = {
@@ -47,7 +46,7 @@ export class IdentifyCreate extends OpenAPIRoute {
 
     async handle(c: Context) {
         const data = await this.getValidatedData<typeof this.schema>();
-        const db: MonstroDb = c.get("db");
+        const db = c.get("db");
         const { discordId, mousehuntId } = data.body;
 
         const newUser: InsertDiscordMouseHuntUser = {

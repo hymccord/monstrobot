@@ -1,4 +1,3 @@
-import { MonstroDb } from "types";
 import { discordMouseHuntUsers } from "schema";
 import { eq } from "drizzle-orm";
 import { OpenAPIRoute } from "chanfana";
@@ -40,7 +39,7 @@ export class IdentifyMouseHuntIdFetch extends OpenAPIRoute {
 
     async handle(c: Context) {
         const data = await this.getValidatedData<typeof this.schema>();
-        const db: MonstroDb = c.get("db");
+        const db = c.get("db");
         const { id } = data.params;
 
         const user = await db.query.discordMouseHuntUsers.findFirst({
