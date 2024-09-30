@@ -144,3 +144,6 @@ id = "b78377fc03f9446d91ec44c19b450263"
 # [[vectorize]]
 # binding = "MY_INDEX"
 # index_name = "my-index"
+
+[observability]
+enabled = true
