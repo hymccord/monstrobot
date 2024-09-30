@@ -1,6 +1,8 @@
 CREATE TABLE `DiscordMouseHuntUsers` (
-	`id` text PRIMARY KEY NOT NULL,
-	`mhid` integer NOT NULL
+	`id` text,
+	`guildId` text NOT NULL,
+	`mhid` integer NOT NULL,
+	PRIMARY KEY(`id`, `guildId`)
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `DiscordMouseHuntUsers_mhid_unique` ON `DiscordMouseHuntUsers` (`mhid`);
+CREATE UNIQUE INDEX `mhid_guildId_idx` ON `DiscordMouseHuntUsers` (`mhid`,`guildId`);

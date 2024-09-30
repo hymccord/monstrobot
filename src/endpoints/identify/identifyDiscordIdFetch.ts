@@ -1,5 +1,5 @@
 import { discordMouseHuntUsers } from "schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { OpenAPIRoute } from "chanfana";
 import { z } from "zod";
 import { Context } from "hono";
@@ -10,6 +10,9 @@ export class IdentifyDiscordIdFetch extends OpenAPIRoute {
         request: {
             params: z.object({
                 id: z.string().describe("Discord ID"), // TODO: Change to bigint when drizzle supports bigint
+            }),
+            query: z.object({
+                guildId: z.string().describe("Guild ID"),
             }),
         },
         security: [
@@ -23,7 +26,8 @@ export class IdentifyDiscordIdFetch extends OpenAPIRoute {
                 content: {
                     'application/json': {
                         schema: z.object({
-                            discordId: z.number().describe("Discord ID"),
+                            discordId: z.string().describe("Discord ID"),
+                            guildId: z.string().describe("Guild ID"),
                             mousehuntId: z.number().describe("MouseHunt Profile ID")
                         }),
                     },
@@ -55,9 +59,13 @@ export class IdentifyDiscordIdFetch extends OpenAPIRoute {
         const data = await this.getValidatedData<typeof this.schema>();
         const db = c.get("db");
         const { id } = data.params;
+        const { guildId } = data.query;
 
         const user = await db.query.discordMouseHuntUsers.findFirst({
-            where: eq(discordMouseHuntUsers.id, id),
+            where: and(
+                eq(discordMouseHuntUsers.id, id),
+                eq(discordMouseHuntUsers.guildId, guildId),
+            ),
         });
 
         if (!user) {

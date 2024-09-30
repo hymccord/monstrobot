@@ -1,5 +1,5 @@
 import { discordMouseHuntUsers } from "schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { OpenAPIRoute } from "chanfana";
 import { z } from "zod";
 import { Context } from "hono";
@@ -11,6 +11,9 @@ export class IdentifyMouseHuntIdFetch extends OpenAPIRoute {
             params: z.object({
                 id: z.number().describe("MouseHunt Profile ID"),
             }),
+            query: z.object({
+                guildId: z.string().describe("Guild ID"),
+            })
         },
         security: [
             {
@@ -24,6 +27,7 @@ export class IdentifyMouseHuntIdFetch extends OpenAPIRoute {
                     'application/json': {
                         schema: z.object({
                             discordId: z.number().describe("Discord ID"),
+                            guildId: z.string().describe("Guild ID"),
                             mousehuntId: z.number().describe("MouseHunt Profile ID")
                         }),
                     },
@@ -55,9 +59,13 @@ export class IdentifyMouseHuntIdFetch extends OpenAPIRoute {
         const data = await this.getValidatedData<typeof this.schema>();
         const db = c.get("db");
         const { id } = data.params;
+        const { guildId } = data.query;
 
         const user = await db.query.discordMouseHuntUsers.findFirst({
-            where: eq(discordMouseHuntUsers.mhid, id),
+            where: and(
+                eq(discordMouseHuntUsers.mhid, id),
+                eq(discordMouseHuntUsers.guildId, guildId),
+            ),
         })
 
         if (!user) {
@@ -69,6 +77,7 @@ export class IdentifyMouseHuntIdFetch extends OpenAPIRoute {
 
         return c.json({
             discordId: user.id,
+            guildId: user.guildId,
             mousehuntId: user.mhid,
         });
     }

@@ -1,5 +1,5 @@
 import { discordMouseHuntUsers } from "schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { OpenAPIRoute } from "chanfana";
 import { z } from "zod";
 import { Context } from "hono";
@@ -10,6 +10,9 @@ export class IdentifyDiscordIdDelete extends OpenAPIRoute {
         request: {
             params: z.object({
                 id: z.string().describe("Discord ID"), // TODO: Change to bigint when drizzle supports bigint
+            }),
+            query: z.object({
+                guildId: z.string().describe("Guild ID"),
             }),
         },
         security: [
@@ -47,9 +50,13 @@ export class IdentifyDiscordIdDelete extends OpenAPIRoute {
         const data = await this.getValidatedData<typeof this.schema>();
         const db = c.get("db");
         const { id } = data.params;
+        const { guildId } = data.query;
 
         const user = await db.delete(discordMouseHuntUsers).where(
-            eq(discordMouseHuntUsers.id, id),
+            and(
+                eq(discordMouseHuntUsers.id, id),
+                eq(discordMouseHuntUsers.guildId, guildId),
+            ),
         ).returning();
 
         if (user.length == 0) {

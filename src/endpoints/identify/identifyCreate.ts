@@ -1,5 +1,5 @@
 import { discordMouseHuntUsers, InsertDiscordMouseHuntUser } from "schema";
-import { eq, or } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import { OpenAPIRoute } from "chanfana";
 import { z } from "zod";
 import { Context } from "hono";
@@ -13,6 +13,7 @@ export class IdentifyCreate extends OpenAPIRoute {
                     'application/json': {
                         schema: z.object({
                             discordId: z.coerce.string().describe("Discord ID"),
+                            guildId: z.coerce.string().describe("Guild ID"),
                             mousehuntId: z.number().describe("MouseHunt Profile ID")
                         }),
                     },
@@ -61,17 +62,25 @@ export class IdentifyCreate extends OpenAPIRoute {
     async handle(c: Context) {
         const data = await this.getValidatedData<typeof this.schema>();
         const db = c.get("db");
-        const { discordId, mousehuntId } = data.body;
+        const { discordId, guildId, mousehuntId } = data.body;
 
         const newUser: InsertDiscordMouseHuntUser = {
             id: discordId,
+            guildId: guildId,
             mhid: mousehuntId,
         };
 
+        // Check if either mhid or dId already exists in combination with guildId
         const user = await db.query.discordMouseHuntUsers.findFirst({
             where: or(
-                eq(discordMouseHuntUsers.id, discordId),
-                eq(discordMouseHuntUsers.mhid, mousehuntId),
+                and(
+                    eq(discordMouseHuntUsers.id, discordId),
+                    eq(discordMouseHuntUsers.guildId, guildId),
+                ),
+                and(
+                    eq(discordMouseHuntUsers.mhid, mousehuntId),
+                    eq(discordMouseHuntUsers.guildId, guildId),
+                )
             ),
         });
 
@@ -93,6 +102,7 @@ export class IdentifyCreate extends OpenAPIRoute {
 
         return c.json({
             discordId,
+            guildId,
             mousehuntId,
         }, 201);
     }
