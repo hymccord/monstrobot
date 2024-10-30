@@ -2,6 +2,11 @@ import { DrizzleD1Database } from "drizzle-orm/d1";
 import * as schema from "./schema";
 import { z } from "zod";
 
+export const ErrorSchema = z.object({
+    success: z.literal(false),
+    error: z.string(),
+});
+
 export const RandomPhrase = z.object({
     phrase: z.string(),
 });

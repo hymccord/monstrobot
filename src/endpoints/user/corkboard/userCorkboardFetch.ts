@@ -2,7 +2,7 @@ import { OpenAPIRoute } from "chanfana";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { MouseHuntApiClient } from "clients/mouseHuntApiClient";
-import { CorkboardMessage, CorkboardMessageSchema } from "types";
+import { CorkboardMessage, CorkboardMessageSchema, ErrorSchema } from "types";
 import { Context } from "hono";
 
 export class UserCorkboardFetch extends OpenAPIRoute {
@@ -27,22 +27,33 @@ export class UserCorkboardFetch extends OpenAPIRoute {
         responses: {
             "200": {
                 description: "Returns a single message if found",
-                schema: CorkboardMessageSchema,
+                content: {
+                    "application/json": {
+                        schema: CorkboardMessageSchema,
+                    },
+                },
             },
             "400": {
                 description: "Bad request",
+                content: {
+                    "application/json": {
+                        schema: ErrorSchema,
+                    },
+                },
             },
             "401": {
                 description: "Credentials are invalid",
+                content: {
+                    "application/json": {
+                        schema: ErrorSchema,
+                    },
+                },
             },
             "404": {
                 description: "Not found",
                 content: {
                     "application/json": {
-                        schema: z.object({
-                            success: z.boolean(),
-                            error: z.string(),
-                        }),
+                        schema: ErrorSchema,
                     },
                 },
             },
