@@ -65,18 +65,45 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
 
         const client = new MouseHuntApiClient();
         const { userSlug } = data.params;
+
+        let userSnuid: string;
         try {
-            const snuid = await client.getUserSnuid(data.headers, userSlug);
+            userSnuid = await client.getUserSnuid(data.headers,
+                userSlug
+            );
+        } catch (e) {
+            if (e instanceof Response) {
+                if (e.status == 400) {
+                    return c.json(
+                        {
+                            success: false,
+                            error: "User not found",
+                        },
+                        404
+                    );
+                }
+            }
+            return c.json(
+                {
+                    success: false,
+                    error: "Invalid credentials",
+                },
+                401
+            );
+        }
+
+        try {
             const res = await client.getPageAsync<BodyInit>(data.headers, {
                 "page_class": "HunterProfile",
-                "page_arguments[snuid]": snuid,
+                "page_arguments[snuid]": userSnuid,
             },
             "$.tabs.profile.subtabs[0].journals.entries_string")
 
             let hasSummary = false;
             const journalSummary = {
-                hunting_since: "",
-                loot_data: {}
+                since: "",
+                hunts: 0,
+                loot: 0,
             };
             const summary = await new HTMLRewriter()
                 .on('div[class*="log_summary"] a', {
@@ -92,9 +119,17 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
                             return;
                         }
 
-                        journalSummary.hunting_since = JSON.parse(matches[0]);
+                        journalSummary.since = JSON.parse(matches[0]);
+                        const baitData = JSON.parse(matches[2]);
                         const lootData = JSON.parse(matches[3]);
-                        journalSummary.loot_data = Object.keys(lootData).length;
+                        // sum values where keys end in _bu
+                        journalSummary.hunts = Object.keys(baitData).reduce((acc, key) => {
+                            if (key.endsWith("_bu")) {
+                                acc += parseInt(baitData[key]);
+                            }
+                            return acc;
+                        }, 0);
+                        journalSummary.loot = Object.keys(lootData).length;
                     },
                 })
                 .transform(new Response(res)).text();

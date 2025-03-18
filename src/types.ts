@@ -43,6 +43,7 @@ export const AllAchievementStatus = z.object({
 });
 
 export const JournalSummarySchema = z.object({
-    hunting_since: z.number(),
-    loot_data: z.number(),
+    since: z.number(),
+    hunts: z.number(),
+    loot: z.number(),
 });
