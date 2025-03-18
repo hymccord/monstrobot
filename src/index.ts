@@ -12,6 +12,7 @@ import { UserCrownList } from "endpoints/user/crown/userCrownList";
 import { UserCrownPowerFetch } from "endpoints/user/crown/userCrownPowerFetch";
 import { UserCrownPowerTypeFetch } from "endpoints/user/crown/userCrownPowerTypeFetch";
 import { UserInfoFetch } from "endpoints/user/userInfoFetch";
+import { UserJournalSummaryFetch } from "endpoints/user/journal/userJournalSummaryFetch";
 import { IdentifyDiscordIdFetch } from "endpoints/identify/identifyDiscordIdFetch";
 import { IdentifyMouseHuntIdFetch } from "endpoints/identify/identifyMouseHuntIdFetch";
 import { IdentifyCreate } from "endpoints/identify/identifyCreate";
@@ -45,6 +46,7 @@ openapi.use(logger());
 openapi.get("/api/phrase", RandomPhraseFetch);
 openapi.get("/api/user/:userSlug", UserInfoFetch);
 openapi.get("/api/user/:userSlug/corkboard", UserCorkboardFetch);
+openapi.get("/api/user/:userSlug/journalSummary", UserJournalSummaryFetch);
 
 /// Achievements
 openapi.get("/api/user/:userSlug/achievements", UserAchievementList);

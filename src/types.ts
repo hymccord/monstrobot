@@ -41,3 +41,8 @@ export const AllAchievementStatus = z.object({
     snuid: z.string(),
     achievements: z.record(Achievement, z.boolean()),
 });
+
+export const JournalSummarySchema = z.object({
+    hunting_since: z.number(),
+    loot_data: z.number(),
+});
