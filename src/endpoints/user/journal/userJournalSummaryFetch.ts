@@ -114,6 +114,14 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
                 hunts: 0,
                 loot: 0,
             };
+
+            if (profile.journals.entries_string == '') {
+                return c.json({
+                    success: false,
+                    error: "No journal summary found",
+                }, 404);
+            }
+
             const summary = await new HTMLRewriter()
                 .on('div[class*="log_summary"] a', {
                     element: (element) => {
