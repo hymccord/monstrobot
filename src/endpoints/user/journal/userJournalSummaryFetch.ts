@@ -1,9 +1,9 @@
 import { OpenAPIRoute } from "chanfana";
-import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { MouseHuntApiClient } from "clients/mouseHuntApiClient";
 import { JournalSummarySchema, ErrorSchema } from "types";
 import { Context } from "hono";
+import jp from "jsonpath";
 
 export class UserJournalSummaryFetch extends OpenAPIRoute {
     schema = {
@@ -93,14 +93,23 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
         }
 
         try {
+            const profileTabSchema = z.object({
+                name: z.string().trim(),
+                journals: z.object({
+                    entries_string: z.string(),
+                }),
+            })
             const res = await client.getPageAsync<BodyInit>(data.headers, {
                 "page_class": "HunterProfile",
                 "page_arguments[snuid]": userSnuid,
             },
-            "$.tabs.profile.subtabs[0].journals.entries_string")
+            "$.tabs.profile.subtabs[0]")
+
+            const profile = profileTabSchema.parse(res);
 
             let hasSummary = false;
             const journalSummary = {
+                name: profile.name,
                 since: "",
                 hunts: 0,
                 loot: 0,
@@ -132,7 +141,7 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
                         journalSummary.loot = Object.keys(lootData).length;
                     },
                 })
-                .transform(new Response(res)).text();
+                .transform(new Response(profile.journals.entries_string)).text();
 
             if (!hasSummary) {
                 return c.json({
