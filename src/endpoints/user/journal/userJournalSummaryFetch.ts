@@ -3,7 +3,6 @@ import { z } from "zod";
 import { MouseHuntApiClient } from "clients/mouseHuntApiClient";
 import { JournalSummarySchema, ErrorSchema } from "types";
 import { Context } from "hono";
-import jp from "jsonpath";
 
 export class UserJournalSummaryFetch extends OpenAPIRoute {
     schema = {
@@ -108,11 +107,12 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
             const profile = profileTabSchema.parse(res);
 
             let hasSummary = false;
-            const journalSummary = {
+            const journalSummary: z.infer<typeof JournalSummarySchema> = {
                 name: profile.name,
                 since: "",
                 hunts: 0,
                 loot: 0,
+                message: "",
             };
 
             if (profile.journals.entries_string == '') {
@@ -136,17 +136,29 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
                             return;
                         }
 
+                        const numbersByStringSchema = z.record(z.coerce.number());
+                        const numbersByNumberSchema = z.record(z.coerce.number(), z.coerce.number());
+
                         journalSummary.since = JSON.parse(matches[0]);
-                        const baitData = JSON.parse(matches[2]);
-                        const lootData = JSON.parse(matches[3]);
+                        // catchData keys are "<group_id>_<mouse_id>"
+                        const catchData = numbersByStringSchema.parse(JSON.parse(matches[1]));
+                        const baitData = numbersByStringSchema.parse(JSON.parse(matches[2]));
+                        const lootData = numbersByNumberSchema.parse(JSON.parse(matches[3]));
                         // sum values where keys end in _bu
-                        journalSummary.hunts = Object.keys(baitData).reduce((acc, key) => {
-                            if (key.endsWith("_bu")) {
-                                acc += parseInt(baitData[key]);
-                            }
-                            return acc;
-                        }, 0);
+                        journalSummary.hunts = Object.entries(baitData)
+                            .filter(([key, _]) => key.endsWith("_bu"))
+                            .reduce((acc, [_, value]) => acc + value, 0);
                         journalSummary.loot = Object.keys(lootData).length;
+
+                        // Check if Warmonger caught but no egg.
+                        const hasWarmongerCatch = Object.keys(catchData).some(key => key.endsWith("_306"));
+                        const hasWarmongerEgg = lootData[2317] !== undefined;
+
+                        if (hasWarmongerCatch && !hasWarmongerEgg) {
+                            journalSummary.message = "I added +1 to loot. You caught a Warmonger without an egg!";
+                            journalSummary.loot += 1;
+                        }
+
                     },
                 })
                 .transform(new Response(profile.journals.entries_string)).text();
