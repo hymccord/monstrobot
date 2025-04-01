@@ -25,8 +25,8 @@ export class MouseHuntApiClient {
         userId: number
     ): Promise<string> {
 
-        const data = await this.fetchPostAsync(credentials,
-            `/api/get/usersnuid/${userId}`,
+        const data = await this.queryApiEndpoint(credentials,
+            `get/usersnuid/${userId}`,
             UserSnuidSchema
         );
 
@@ -43,9 +43,9 @@ export class MouseHuntApiClient {
     ): Promise<types.Profile> {
         // create string from all fields in UserInfo joined with comma
         const fields = Object.keys(types.ProfileSchema.shape).join(",");
-        const data = await this.fetchPostAsync(
+        const data = await this.queryApiEndpoint(
             credentials,
-            `/api/get/user/${snuid}/${fields}`,
+            `get/user/${snuid}/${fields}`,
             types.ProfileSchema
         );
 
@@ -57,9 +57,9 @@ export class MouseHuntApiClient {
     }
 
     public async getMice(credentials: MouseHuntCredentials): Promise<hg.Mice> {
-        const data = await this.fetchPostAsync(
+        const data = await this.queryApiEndpoint(
             credentials,
-            "/api/get/mouse/all",
+            "get/mouse/all",
             hg.MiceSchema
         );
 
@@ -75,9 +75,9 @@ export class MouseHuntApiClient {
         snuid: string,
         schema: T): Promise<z.infer<T>> {
         const fields = Object.keys(schema.shape).join(",");
-        const data = await this.fetchPostAsync(
+        const data = await this.queryApiEndpoint(
             credentials,
-            `/api/get/user/${snuid}/${fields}`,
+            `get/user/${snuid}/${fields}`,
             schema
         );
 
@@ -92,9 +92,9 @@ export class MouseHuntApiClient {
         credentials: MouseHuntCredentials,
         snuid: string
     ): Promise<types.CorkboardMessage> {
-        const data = await this.fetchPostAsync(
+        const data = await this.queryApiEndpoint(
             credentials,
-            '/api/get/corkboard/profile',
+            'get/corkboard/profile',
             types.CorkboardSchema,
             { sn_user_id: snuid }
         );
@@ -136,12 +136,24 @@ export class MouseHuntApiClient {
         return jp.value(page, jsonPath) as T;
     }
 
-    private async fetchPostAsync<T extends z.Schema>(credentials: MouseHuntCredentials,
-        requestUrl: string,
+    public async queryFormEndpoint<T extends z.ZodType>(
+        credentials: MouseHuntCredentials,
+        relativeUrl: string,
         schema: T,
-        parameters: Record<string, unknown> = {}
+        parameters: Record<string, string | number> = {},
+    ): Promise<z.infer<T>> {
+        const response = await this.postRequestAsync(credentials, relativeUrl, parameters)
+
+        return schema.parse(response);
+    }
+
+    private async queryApiEndpoint<T extends z.ZodType>(
+        credentials: MouseHuntCredentials,
+        relativeUrl: string,
+        schema: T,
+        parameters: Record<string, string> = {},
     ): Promise<z.infer<T> | ErrorReponse> {
-        const response = await fetch(`https://www.mousehuntgame.com${requestUrl}`,
+        const response = await fetch(`https://www.mousehuntgame.com/api/${relativeUrl}`,
             {
                 method: "POST",
                 headers: {
@@ -162,7 +174,7 @@ export class MouseHuntApiClient {
     private async postRequestAsync(
         credentials: MouseHuntCredentials,
         relativeUrl: string,
-        formData: Record<string, string>
+        formData: Record<string, string | number>
     ): Promise<any> {
         const content = {
             ...this._defaultFormData,
@@ -190,15 +202,16 @@ export class MouseHuntApiClient {
     ): Promise<unknown> {
         try {
             for (let tries = 0; tries < 2; tries++) {
+                const body = formUrlEncoded(formData);
                 const response = await fetch(
-                    `https://www.mousehuntgame.com${relativeUrl}`,
+                    `https://www.mousehuntgame.com/${relativeUrl}`,
                     {
                         method: "POST",
                         headers: {
                             ...this._defaultHeaders,
                             Cookie: `HG_TOKEN=${credentials.hgToken}`,
                         },
-                        body: formUrlEncoded(formData),
+                        body,
                     }
                 );
 
@@ -207,16 +220,22 @@ export class MouseHuntApiClient {
                 }
 
                 if (response.headers.get("content-type") === "text/html") {
-                    throw new Error();
+                    throw new ApiError("Unexpected html response", 500);
                 }
 
                 const json = await response.json();
+                const hgResponse = hgResponseSchema.safeParse(json);
+
+                if (!hgResponse.success) {
+                    throw new ApiError("Unexpected json response", 500);
+                }
+
+                if (hgResponse.data.user.has_puzzle) {
+                    throw new ApiError("User has puzzle", 500);
+                }
 
                 // check if we need to refresh session
-                const popupMessage = jp.value(
-                    json,
-                    "$.messageData.popup.messages[0].messageData.body"
-                );
+                const popupMessage = hgResponse.data.messageData.popup.messages[0]?.messageData?.body;
                 if (popupMessage == "Your session has expired.") {
                     await this.refreshSession(credentials);
                     continue;
@@ -254,6 +273,22 @@ class ApiError extends Error {
 }
 
 // Zod Schemas
+const hgResponseSchema = z.object({
+    user: z.object({
+        sn_user_id: z.string(),
+        has_puzzle: z.boolean(),
+    }),
+    messageData: z.object({
+        popup: z.object({
+            messages: z.array(z.object({
+                messageData: z.object({
+                    body: z.string(),
+                }),
+            })),
+        }),
+    }),
+});
+
 const UserSnuidSchema = z.object({
     sn_user_id: z.string(),
 });

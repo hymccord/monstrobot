@@ -12,6 +12,9 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
             params: z.object({
                 userSlug: z.number().describe("User slug"),
             }),
+            query: z.object({
+                page: z.number().optional().default(0).describe("Page number"),
+            }),
             headers: z.object({
                 hgToken: z
                     .string()
@@ -64,6 +67,7 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
 
         const client = new MouseHuntApiClient();
         const { userSlug } = data.params;
+        const { page } = data.query;
 
         let userSnuid: string;
         try {
@@ -98,13 +102,36 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
                     entries_string: z.string(),
                 }),
             })
+
+            let journals: {
+                entries_string: string;
+            };
+
             const res = await client.getPageAsync<BodyInit>(data.headers, {
                 "page_class": "HunterProfile",
                 "page_arguments[snuid]": userSnuid,
             },
-            "$.tabs.profile.subtabs[0]")
+            "$.tabs.profile.subtabs[0]");
 
             const profile = profileTabSchema.parse(res);
+
+            if (page > 1) {
+                const res = await client.queryFormEndpoint(
+                    data.headers,
+                    "managers/ajax/pages/journal.php",
+                    journalResponseSchema,
+                    {
+                        page: page,
+                        size: 'jlarge',
+                        owner: userSlug,
+                    }
+                )
+
+                journals = res.journal_page;
+            }
+            else {
+                journals = profile.journals;
+            }
 
             let hasSummary = false;
             const journalSummary: z.infer<typeof JournalSummarySchema> = {
@@ -115,7 +142,7 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
                 message: "",
             };
 
-            if (profile.journals.entries_string == '') {
+            if (journals.entries_string == '') {
                 return c.json({
                     success: false,
                     error: "No journal summary found",
@@ -161,7 +188,7 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
 
                     },
                 })
-                .transform(new Response(profile.journals.entries_string)).text();
+                .transform(new Response(journals.entries_string)).text();
 
             if (!hasSummary) {
                 return c.json({
@@ -193,3 +220,9 @@ export class UserJournalSummaryFetch extends OpenAPIRoute {
         }
     }
 }
+
+const journalResponseSchema = z.object({
+    journal_page: z.object({
+        entries_string: z.string(),
+    }),
+});
