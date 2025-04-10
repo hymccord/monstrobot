@@ -18,6 +18,10 @@ import { IdentifyMouseHuntIdFetch } from "endpoints/identify/identifyMouseHuntId
 import { IdentifyCreate } from "endpoints/identify/identifyCreate";
 import { IdentifyDiscordIdDelete } from "endpoints/identify/identifyDiscordIdDelete";
 import { IdentifyMouseHuntIdDelete } from "endpoints/identify/identifyMouseHuntIdDelete";
+import { HTTPResponseError } from "hono/types";
+import { HTTPException } from "hono/http-exception";
+import KingsRewardFetch from "endpoints/kr/KingsRewardFetch";
+import KingsRewardPost from "endpoints/kr/KingsRewardPost";
 
 const app = new Hono();
 
@@ -44,6 +48,8 @@ openapi.use("/api/*", async (c: Context, next: Next) => {
 openapi.use(logger());
 
 openapi.get("/api/phrase", RandomPhraseFetch);
+openapi.get("/api/kr", KingsRewardFetch);
+openapi.post("/api/kr", KingsRewardPost);
 openapi.get("/api/user/:userSlug", UserInfoFetch);
 openapi.get("/api/user/:userSlug/corkboard", UserCorkboardFetch);
 openapi.get("/api/user/:userSlug/journalSummary", UserJournalSummaryFetch);
@@ -83,5 +89,20 @@ openapi.all("*", (c: Context) =>
         error: "Route not found",
     }, 404)
 );
+
+app.onError((err: Error, c: Context) => {
+    if (err instanceof HTTPException) {
+        return c.json({
+            success: false,
+            error: {
+                message: err.message,
+                code: err.status,
+            },
+        }, err.status);
+    }
+    return c.json({
+        success: false,
+    }, 500)
+});
 
 export default app;

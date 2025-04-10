@@ -5,6 +5,7 @@ import formUrlEncoded from "form-urlencoded";
 
 import * as hg from "hg.types";
 import * as types from "types";
+import { HTTPException } from "hono/http-exception";
 
 export class MouseHuntApiClient {
     private _defaultFormData = {
@@ -20,6 +21,22 @@ export class MouseHuntApiClient {
 
     constructor() {}
 
+    public async getMe(
+        credentials: MouseHuntCredentials
+    ): Promise<{user_id: number}> {
+        const data = await this.queryApiEndpoint(credentials,
+        "get/user/me",
+        z.object({
+            user_id: z.number(),
+        }));
+
+        if (this.isErrorResponse(data)) {
+            this.throwHttpException(data.error.message, data.error.code);
+        }
+
+        return data;
+    }
+
     public async getUserSnuid(
         credentials: MouseHuntCredentials,
         userId: number
@@ -31,7 +48,7 @@ export class MouseHuntApiClient {
         );
 
         if (this.isErrorResponse(data)) {
-            throw new ApiError(data.error.message, data.error.code);
+            this.throwHttpException(data.error.message, data.error.code);
         }
 
         return data.sn_user_id;
@@ -50,7 +67,7 @@ export class MouseHuntApiClient {
         );
 
         if (this.isErrorResponse(data)) {
-            throw new ApiError(data.error.message, data.error.code);
+            this.throwHttpException(data.error.message, data.error.code);
         }
 
         return data;
@@ -64,7 +81,7 @@ export class MouseHuntApiClient {
         );
 
         if (this.isErrorResponse(data)) {
-            throw new ApiError(data.error.message, data.error.code);
+            this.throwHttpException(data.error.message, data.error.code);
         }
 
         return data;
@@ -82,7 +99,7 @@ export class MouseHuntApiClient {
         );
 
         if (this.isErrorResponse(data)) {
-            throw new ApiError(data.error.message, data.error.code);
+            this.throwHttpException(data.error.message, data.error.code);
         }
 
         return data;
@@ -100,7 +117,7 @@ export class MouseHuntApiClient {
         );
 
         if (this.isErrorResponse(data)) {
-            throw new ApiError(data.error.message, data.error.code);
+            this.throwHttpException(data.error.message, data.error.code);
         }
 
         return data.corkboard_messages[0];
@@ -119,6 +136,26 @@ export class MouseHuntApiClient {
         const page = response.user_data;
 
         return jp.value(page, jsonPath) as T;
+    }
+
+    public async getTreasureMap(
+        credentials: MouseHuntCredentials,
+        id: number,
+    ): Promise<hg.TreasureMapResponse> {
+        const data = await this.postRequestAsync(
+            credentials,
+            "/managers/ajax/users/treasuremap_v2.php",
+            {
+                action: 'map_info',
+                map_id: id.toString(),
+            }
+        );
+
+        if (this.isErrorResponse(data)) {
+            this.throwHttpException(data.error.message, data.error.code);
+        }
+
+        return hg.TreasureMapResponseSchema.parse(data);
     }
 
     public async getPageAsync<T>(
@@ -147,7 +184,7 @@ export class MouseHuntApiClient {
         return schema.parse(response);
     }
 
-    private async queryApiEndpoint<T extends z.ZodType>(
+    public async queryApiEndpoint<T extends z.ZodType>(
         credentials: MouseHuntCredentials,
         relativeUrl: string,
         schema: T,
@@ -181,18 +218,11 @@ export class MouseHuntApiClient {
             ...formData,
             uh: credentials.uniqueHash,
         };
-        let data;
-        try {
-            data = await this.fetchWithRetriesAsync(
-                credentials,
-                relativeUrl,
-                content
-            );
-        } catch (error) {
-            console.log(error);
-        }
-
-        return data;
+        return await this.fetchWithRetriesAsync(
+            credentials,
+            relativeUrl,
+            content
+        );
     }
 
     private async fetchWithRetriesAsync(
@@ -200,54 +230,56 @@ export class MouseHuntApiClient {
         relativeUrl: string,
         formData: Record<string, string> = {}
     ): Promise<unknown> {
-        try {
-            for (let tries = 0; tries < 2; tries++) {
-                const body = formUrlEncoded(formData);
-                const response = await fetch(
-                    `https://www.mousehuntgame.com/${relativeUrl}`,
-                    {
-                        method: "POST",
-                        headers: {
-                            ...this._defaultHeaders,
-                            Cookie: `HG_TOKEN=${credentials.hgToken}`,
-                        },
-                        body,
-                    }
-                );
-
-                if (!response.ok) {
-                    throw response;
+        for (let tries = 0; tries < 2; tries++) {
+            const body = formUrlEncoded(formData);
+            const response = await fetch(
+                `https://www.mousehuntgame.com/${relativeUrl}`,
+                {
+                    method: "POST",
+                    headers: {
+                        ...this._defaultHeaders,
+                        Cookie: `HG_TOKEN=${credentials.hgToken}`,
+                    },
+                    body,
                 }
+            );
 
-                if (response.headers.get("content-type") === "text/html") {
-                    throw new ApiError("Unexpected html response", 500);
-                }
-
-                const json = await response.json();
-                const hgResponse = hgResponseSchema.safeParse(json);
-
-                if (!hgResponse.success) {
-                    throw new ApiError("Unexpected json response", 500);
-                }
-
-                if (hgResponse.data.user.has_puzzle) {
-                    throw new ApiError("User has puzzle", 500);
-                }
-
-                // check if we need to refresh session
-                const popupMessage = hgResponse.data.messageData.popup.messages[0]?.messageData?.body;
-                if (popupMessage == "Your session has expired.") {
-                    await this.refreshSession(credentials);
-                    continue;
-                }
-
-                return json;
+            if (!response.ok) {
+                throw response;
             }
-        } catch (error) {
-            throw error;
+
+            if (response.headers.get("content-type") === "text/html") {
+                throw new HTTPException(500, {
+                    message: "Unexpected html response",
+                })
+            }
+
+            const json = await response.json();
+            const hgResponse = hgResponseSchema.safeParse(json);
+
+            if (!hgResponse.success) {
+                throw new HTTPException(500, {
+                    message: "Unexpected json response",
+                });
+            }
+
+            if (hgResponse.data.user.has_puzzle) {
+                throw new HTTPException(500, {
+                    message: "User has puzzle",
+                });
+            }
+
+            // check if we need to refresh session
+            const popupMessage = hgResponse.data.messageData.popup.messages[0]?.messageData?.body;
+            if (popupMessage == "Your session has expired.") {
+                await this.refreshSession(credentials);
+                continue;
+            }
+
+            return json;
         }
 
-        throw new Error();
+        this.throwHttpException("Failed to fetch data", 500);
     }
 
     private async refreshSession(credentials: MouseHuntCredentials) {
@@ -264,11 +296,12 @@ export class MouseHuntApiClient {
     private isErrorResponse(response: {} | ErrorReponse): response is ErrorReponse {
         return (response as ErrorReponse).error !== undefined;
     }
-}
 
-class ApiError extends Error {
-    constructor(message: string, public code: number) {
-        super(message);
+    private throwHttpException(message: string, code: number): never {
+        // @ts-expect-error
+        throw new HTTPException(code, {
+            message,
+        });
     }
 }
 
