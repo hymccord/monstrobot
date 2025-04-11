@@ -1,9 +1,11 @@
 import { fromHono } from "chanfana";
 import { Context, Hono, Next } from "hono";
-import { logger } from "hono/logger";
 import { bearerAuth } from "hono/bearer-auth";
+import { HTTPException } from "hono/http-exception";
+import { logger } from "hono/logger";
 import { sentry } from "@hono/sentry";
 import { injectDB } from "middleware/injectDB";
+
 import { RandomPhraseFetch } from "endpoints/randomPhraseFetch";
 import { UserAchievementFetch } from "endpoints/user/achievements/userAchievementFetch";
 import { UserAchievementList } from "endpoints/user/achievements/userAchievementList";
@@ -18,6 +20,7 @@ import { IdentifyMouseHuntIdFetch } from "endpoints/identify/identifyMouseHuntId
 import { IdentifyCreate } from "endpoints/identify/identifyCreate";
 import { IdentifyDiscordIdDelete } from "endpoints/identify/identifyDiscordIdDelete";
 import { IdentifyMouseHuntIdDelete } from "endpoints/identify/identifyMouseHuntIdDelete";
+import { KingsRewardPost } from "endpoints/kr/KingsRewardPost";
 
 const app = new Hono();
 
@@ -44,6 +47,7 @@ openapi.use("/api/*", async (c: Context, next: Next) => {
 openapi.use(logger());
 
 openapi.get("/api/phrase", RandomPhraseFetch);
+openapi.post("/api/kr/:code", KingsRewardPost);
 openapi.get("/api/user/:userSlug", UserInfoFetch);
 openapi.get("/api/user/:userSlug/corkboard", UserCorkboardFetch);
 openapi.get("/api/user/:userSlug/journalSummary", UserJournalSummaryFetch);
@@ -83,5 +87,20 @@ openapi.all("*", (c: Context) =>
         error: "Route not found",
     }, 404)
 );
+
+app.onError((err: Error, c: Context) => {
+    if (err instanceof HTTPException) {
+        return c.json({
+            success: false,
+            error: {
+                message: err.message,
+                code: err.status,
+            },
+        }, err.status);
+    }
+    return c.json({
+        success: false,
+    }, 500)
+});
 
 export default app;
