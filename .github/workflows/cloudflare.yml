@@ -21,9 +21,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+      - run: bun install
       - name: Deploy to staging
         uses: cloudflare/wrangler-action@v3
         with:
@@ -44,9 +45,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+      - run: bun install
       - name: Deploy to production
         uses: cloudflare/wrangler-action@v3
         with:
