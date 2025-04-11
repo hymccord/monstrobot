@@ -1,7 +1,8 @@
 #:schema node_modules/wrangler/config-schema.json
 name = "monstrobot"
 main = "src/index.ts"
-compatibility_date = "2024-05-24"
+compatibility_flags = [ "nodejs_compat" ]
+compatibility_date = "2024-09-23"
 upload_source_maps = true
 
 [env.staging]

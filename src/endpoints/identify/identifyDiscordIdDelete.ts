@@ -9,10 +9,10 @@ export class IdentifyDiscordIdDelete extends OpenAPIRoute {
         tags: ["Identify"],
         request: {
             params: z.object({
-                id: z.bigint().describe("Discord ID"),
+                id: z.string().describe("Discord ID"),
             }),
             query: z.object({
-                guildId: z.bigint().describe("Guild ID"),
+                guildId: z.string().describe("Guild ID"),
             }),
         },
         security: [

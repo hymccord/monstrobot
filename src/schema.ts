@@ -1,8 +1,8 @@
-import { blob, integer, primaryKey, sqliteTable, uniqueIndex} from "drizzle-orm/sqlite-core";
+import { integer, primaryKey, sqliteTable, text, uniqueIndex} from "drizzle-orm/sqlite-core";
 
 export const discordMouseHuntUsers = sqliteTable("DiscordMouseHuntUsers", {
-    id: blob('id', { mode: 'bigint'}),
-    guildId: blob('guildId', { mode: 'bigint'}).notNull(),
+    id: text('id'),
+    guildId: text('guildId').notNull(),
     mhid: integer('mhid').notNull(),
 }, (table) => [
     primaryKey({columns: [table.id, table.guildId]}),

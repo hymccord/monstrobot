@@ -9,10 +9,10 @@ export class IdentifyDiscordIdFetch extends OpenAPIRoute {
         tags: ["Identify"],
         request: {
             params: z.object({
-                id: z.bigint().describe("Discord ID"),
+                id: z.string().describe("Discord ID"),
             }),
             query: z.object({
-                guildId: z.bigint().describe("Guild ID"),
+                guildId: z.string().describe("Guild ID"),
             }),
         },
         security: [
@@ -26,8 +26,8 @@ export class IdentifyDiscordIdFetch extends OpenAPIRoute {
                 content: {
                     'application/json': {
                         schema: z.object({
-                            discordId: z.bigint().describe("Discord ID"),
-                            guildId: z.bigint().describe("Guild ID"),
+                            discordId: z.string().describe("Discord ID"),
+                            guildId: z.string().describe("Guild ID"),
                             mousehuntId: z.number().describe("MouseHunt Profile ID")
                         }),
                     },

@@ -12,7 +12,7 @@ export class IdentifyMouseHuntIdFetch extends OpenAPIRoute {
                 id: z.number().describe("MouseHunt Profile ID"),
             }),
             query: z.object({
-                guildId: z.bigint().describe("Guild ID"),
+                guildId: z.string().describe("Guild ID"),
             })
         },
         security: [
@@ -26,8 +26,8 @@ export class IdentifyMouseHuntIdFetch extends OpenAPIRoute {
                 content: {
                     'application/json': {
                         schema: z.object({
-                            discordId: z.bigint().describe("Discord ID"),
-                            guildId: z.bigint().describe("Guild ID"),
+                            discordId: z.number().describe("Discord ID"),
+                            guildId: z.string().describe("Guild ID"),
                             mousehuntId: z.number().describe("MouseHunt Profile ID")
                         }),
                     },

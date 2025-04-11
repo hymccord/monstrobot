@@ -12,7 +12,7 @@ export class IdentifyMouseHuntIdDelete extends OpenAPIRoute {
                 id: z.number().describe("MouseHunt Profile ID"),
             }),
             query: z.object({
-                guildId: z.bigint().describe("Guild ID"),
+                guildId: z.string().describe("Guild ID"),
             }),
         },
         security: [
