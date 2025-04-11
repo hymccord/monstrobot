@@ -1,0 +1,66 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "5bf09e97-f2ab-4364-929d-0a010834fe63",
+  "prevId": "3b4527a0-f503-4ab6-924e-caa079147dcb",
+  "tables": {
+    "DiscordMouseHuntUsers": {
+      "name": "DiscordMouseHuntUsers",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "guildId": {
+          "name": "guildId",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "mhid": {
+          "name": "mhid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "mhid_guildId_idx": {
+          "name": "mhid_guildId_idx",
+          "columns": [
+            "mhid",
+            "guildId"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "DiscordMouseHuntUsers_id_guildId_pk": {
+          "columns": [
+            "id",
+            "guildId"
+          ],
+          "name": "DiscordMouseHuntUsers_id_guildId_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

@@ -12,8 +12,8 @@ export class IdentifyCreate extends OpenAPIRoute {
                 content: {
                     'application/json': {
                         schema: z.object({
-                            discordId: z.coerce.string().describe("Discord ID"),
-                            guildId: z.coerce.string().describe("Guild ID"),
+                            discordId: z.coerce.bigint().describe("Discord ID"),
+                            guildId: z.coerce.bigint().describe("Guild ID"),
                             mousehuntId: z.number().describe("MouseHunt Profile ID")
                         }),
                     },
@@ -31,7 +31,7 @@ export class IdentifyCreate extends OpenAPIRoute {
                 content: {
                     'application/json': {
                         schema: z.object({
-                            discordId: z.number().describe("Discord ID"),
+                            discordId: z.bigint().describe("Discord ID"),
                             mousehuntId: z.number().describe("MouseHunt Profile ID")
                         }),
                     },

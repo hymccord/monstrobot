@@ -9,10 +9,10 @@ export class IdentifyDiscordIdDelete extends OpenAPIRoute {
         tags: ["Identify"],
         request: {
             params: z.object({
-                id: z.string().describe("Discord ID"), // TODO: Change to bigint when drizzle supports bigint
+                id: z.bigint().describe("Discord ID"),
             }),
             query: z.object({
-                guildId: z.string().describe("Guild ID"),
+                guildId: z.bigint().describe("Guild ID"),
             }),
         },
         security: [

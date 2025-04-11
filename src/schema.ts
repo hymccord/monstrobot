@@ -1,15 +1,13 @@
-import { integer, primaryKey, sqliteTable, text, uniqueIndex} from "drizzle-orm/sqlite-core";
+import { blob, integer, primaryKey, sqliteTable, uniqueIndex} from "drizzle-orm/sqlite-core";
 
 export const discordMouseHuntUsers = sqliteTable("DiscordMouseHuntUsers", {
-    id: text('id'),
-    guildId: text('guildId').notNull(),
+    id: blob('id', { mode: 'bigint'}),
+    guildId: blob('guildId', { mode: 'bigint'}).notNull(),
     mhid: integer('mhid').notNull(),
-}, (table) => {
-    return {
-        pk: primaryKey({columns: [table.id, table.guildId]}),
-        mhidIndex: uniqueIndex('mhid_guildId_idx').on(table.mhid, table.guildId),
-    };
-});
+}, (table) => [
+    primaryKey({columns: [table.id, table.guildId]}),
+    uniqueIndex('mhid_guildId_idx').on(table.mhid, table.guildId),
+]);
 
 export type DiscordMouseHuntUser = typeof discordMouseHuntUsers.$inferSelect;
 export type InsertDiscordMouseHuntUser = typeof discordMouseHuntUsers.$inferInsert;

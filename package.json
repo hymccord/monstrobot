@@ -8,24 +8,26 @@
     "start": "wrangler dev",
     "cf-typegen": "wrangler types",
     "generate": "drizzle-kit generate --name ",
+    "apply": "wrangler d1 migrations apply monstrobot-db",
+    "apply:staging": "wrangler d1 migrations apply monstrobot-staging-db -e staging --remote",
+    "apply:prod": "wrangler d1 migrations apply monstrobot-db --remote",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org hankmccord --project monstrobot ./dist && sentry-cli sourcemaps upload --org hankmccord --project monstrobot ./dist"
   },
   "dependencies": {
     "@hono/sentry": "^1.2.0",
     "chanfana": "^2.7.2",
-    "drizzle-orm": "^0.33.0",
+    "drizzle-orm": "^0.41.0",
     "form-urlencoded": "^6.1.5",
     "hono": "^4.7.5",
     "jsonpath": "^1.1.1",
     "random-word-slugs": "^0.1.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250319.0",
     "@sentry/cli": "^2.42.4",
     "@types/jsonpath": "^0.2.4",
     "@types/node": "^20.17.24",
     "@types/service-worker-mock": "^2.0.4",
-    "drizzle-kit": "^0.24.2",
+    "drizzle-kit": "^0.30.6",
     "wrangler": "^4.2.0"
   }
 }
