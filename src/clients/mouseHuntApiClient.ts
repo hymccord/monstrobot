@@ -318,7 +318,7 @@ export class MouseHuntApiClient {
 // Zod Schemas
 const hgUserSchema = z.object({
     user_id: z.number(),
-    sn_user_id: z.string(),
+    sn_user_id: z.number().or(z.string()),
     has_puzzle: z.boolean(),
 });
 const hgResponseSchema = z.object({
